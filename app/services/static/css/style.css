@@ -1,0 +1,387 @@
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f4f6f9;
+    color: #1a1a1a;
+}
+
+
+/* ============================================================
+   HEADER — все страницы
+   ============================================================ */
+.header {
+    background-color: #1F3864;
+    padding: 14px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header__inner {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.header__home {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 20px;
+}
+
+.header__title {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.header__logout {
+    margin-left: auto;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 14px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.header__logout:hover {
+    opacity: 1;
+}
+
+
+/* ============================================================
+   MAIN WRAPPER — все страницы
+   ============================================================ */
+.main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.page-header {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.page-header h1 {
+    font-size: 28px;
+    color: #1F3864;
+}
+
+.empty {
+    color: #888;
+    font-size: 15px;
+}
+
+
+/* ============================================================
+   LOGIN PAGE — /login/
+   ============================================================ */
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+}
+
+.login-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 40px;
+    width: 400px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.login-card__title {
+    font-size: 24px;
+    color: #1F3864;
+    margin-bottom: 8px;
+}
+
+.login-card__subtitle {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 24px;
+}
+
+.login-card__error {
+    background: #fee;
+    color: #c00;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.login-card__btn {
+    width: 100%;
+    padding: 12px;
+    background: #1F3864;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+}
+
+.login-card__btn:hover {
+    background: #2E5090;
+}
+
+
+/* ============================================================
+   FORM ELEMENTS — login, edit (переиспользуется)
+   ============================================================ */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 6px;
+}
+
+.form-group__input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    transition: border 0.2s;
+}
+
+.form-group__input:focus {
+    border-color: #1F3864;
+}
+
+
+/* ============================================================
+   SEARCH — страница списка сотрудников
+   ============================================================ */
+.search-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.search-form__input {
+    padding: 10px 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+    width: 260px;
+    outline: none;
+    transition: border 0.2s;
+}
+
+.search-form__input:focus {
+    border-color: #1F3864;
+}
+
+.search-form__btn {
+    padding: 10px 20px;
+    background-color: #1F3864;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-form__btn:hover {
+    background-color: #2E5090;
+}
+
+
+/* ============================================================
+   EMPLOYEE LIST PAGE — /
+   ============================================================ */
+.employees-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.card__img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    background: #e0e0e0;
+}
+
+.card__body {
+    padding: 14px;
+}
+
+.card__name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #1F3864;
+}
+
+.card__status {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.card__date {
+    font-size: 13px;
+    color: #888;
+}
+
+
+/* ============================================================
+   EMPLOYEE DETAIL PAGE — /employee/<id>/
+   ============================================================ */
+.detail {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+}
+
+.detail__media {
+    flex-shrink: 0;
+}
+
+.detail__img {
+    width: 260px;
+    height: 320px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.detail__info {
+    flex: 1;
+}
+
+.detail__name {
+    font-size: 28px;
+    color: #1F3864;
+    margin-bottom: 12px;
+}
+
+.detail__status,
+.detail__date {
+    font-size: 15px;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.detail__card {
+    margin-top: 24px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.detail__card h2 {
+    font-size: 18px;
+    color: #1F3864;
+    margin-bottom: 12px;
+}
+
+.detail__card p {
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 6px;
+}
+
+.detail__history {
+    margin-top: 24px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.detail__history h2 {
+    font-size: 18px;
+    color: #1F3864;
+    margin-bottom: 12px;
+}
+
+.history-item {
+    display: flex;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+    color: #444;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+
+/* ============================================================
+   EMPLOYEE EDIT PAGE — /employee/<id>/edit/
+   ============================================================ */
+.edit-form {
+    max-width: 700px;
+}
+
+.edit-section {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.edit-section h2 {
+    font-size: 18px;
+    color: #1F3864;
+    margin-bottom: 16px;
+}
+
+.btn-back {
+    color: #1F3864;
+    text-decoration: none;
+    font-size: 14px;
+    margin-left: 16px;
+}
+
+.biometric-placeholder {
+    color: #888;
+    font-size: 14px;
+    padding: 16px;
+    background: #f5f5f5;
+    border-radius: 8px;
+}

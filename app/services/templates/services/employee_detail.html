@@ -1,0 +1,46 @@
+{% extends 'services/base.html' %}
+{% block title %}{{ employee.full_name }}{% endblock %}
+
+{% block content %}
+
+<div class="detail">
+    <div class="detail__media">
+        <img class="detail__img" src="{{ employee.image_url }}" alt="{{ employee.full_name }}">
+    </div>
+
+    <div class="detail__info">
+        <h1 class="detail__name">{{ employee.full_name }}</h1>
+        {% if request.user.administrator %}
+            <a href="{% url 'employee_edit' employee.id %}" class="btn-edit">✏️ Редактировать</a>
+        {% endif %}
+        <p class="detail__status">Статус: {{ employee.get_status_display }}</p>
+        <p class="detail__date">Дата найма: {{ employee.hire_date }}</p>
+
+        {% if employee.employeecard %}
+        <div class="detail__card">
+            <h2>Карточка сотрудника</h2>
+            <p>Должность: {{ employee.employeecard.position }}</p>
+            <p>Гражданство: {{ employee.employeecard.citizenship }}</p>
+            <p>Адрес: {{ employee.employeecard.address }}</p>
+            <p>СНИЛС: {{ employee.employeecard.snils }}</p>
+            <p>ИНН: {{ employee.employeecard.inn }}</p>
+        </div>
+        {% endif %}
+
+        <div class="detail__history">
+            <h2>История проходов</h2>
+            {% for event in history %}
+            <div class="history-item">
+                <span>{{ event.datetime }}</span>
+                <span>{{ event.access_point }}</span>
+                <span>{{ event.get_result_display }}</span>
+                <span>{{ event.get_method_display }}</span>
+            </div>
+            {% empty %}
+            <p>История проходов пуста</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'services/base.html' %}
+{% block title %}Сотрудники{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Список сотрудников</h1>
+</div>
+
+<form class="search-form" method="get">
+    <input
+        class="search-form__input"
+        type="text"
+        name="q"
+        value="{{ query }}"
+        placeholder="Поиск по фамилии..."
+    >
+    <input
+        class="search-form__input"
+        type="text"
+        name="department"
+        value="{{ department }}"
+        placeholder="Фильтр по отделу..."
+    >
+    <button class="search-form__btn" type="submit">Найти</button>
+</form>
+
+<div class="employees-grid">
+    {% for employee in employees %}
+    <a href="{% url 'employee_detail' employee.id %}" class="card">
+        <img class="card__img" src="{{ employee.image_url }}" alt="{{ employee.full_name }}">
+        <div class="card__body">
+            <h3 class="card__name">{{ employee.full_name }}</h3>
+            <p class="card__status">{{ employee.get_status_display }}</p>
+            <p class="card__date">с {{ employee.hire_date }}</p>
+        </div>
+    </a>
+    {% empty %}
+    <p class="empty">Сотрудники не найдены</p>
+    {% endfor %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СКУД — {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<header class="header">
+    <div class="header__inner">
+        <a href="{% url 'employee_list' %}" class="header__home">🏠 Домой</a>
+        <span class="header__title">СКУД — Система контроля доступа</span>
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="header__logout">Выйти</a>
+        {% endif %}
+    </div>
+</header>
+
+<main class="main">
+    {% block content %}{% endblock %}
+</main>
+
+</body>
+</html>

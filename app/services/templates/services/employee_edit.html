@@ -1,0 +1,78 @@
+{% extends 'services/base.html' %}
+{% block title %}Редактирование — {{ employee.full_name }}{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Редактирование сотрудника</h1>
+    <a href="{% url 'employee_detail' employee.id %}" class="btn-back">← Назад</a>
+</div>
+
+<form method="post" class="edit-form">
+    {% csrf_token %}
+
+    <div class="edit-section">
+        <h2>Основные данные</h2>
+        <div class="form-group">
+            <label>Фамилия</label>
+            <input type="text" name="last_name" class="form-group__input" value="{{ employee.last_name }}">
+        </div>
+        <div class="form-group">
+            <label>Имя</label>
+            <input type="text" name="first_name" class="form-group__input" value="{{ employee.first_name }}">
+        </div>
+        <div class="form-group">
+            <label>Отчество</label>
+            <input type="text" name="middle_name" class="form-group__input" value="{{ employee.middle_name }}">
+        </div>
+        <div class="form-group">
+            <label>Дата найма</label>
+            <input type="date" name="hire_date" class="form-group__input" value="{{ employee.hire_date|date:'Y-m-d' }}">
+        </div>
+        <div class="form-group">
+            <label>Статус</label>
+            <select name="status" class="form-group__input">
+                <option value="active" {% if employee.status == 'active' %}selected{% endif %}>Активен</option>
+                <option value="fired" {% if employee.status == 'fired' %}selected{% endif %}>Уволен</option>
+                <option value="blocked" {% if employee.status == 'blocked' %}selected{% endif %}>Заблокирован</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="edit-section">
+        <h2>Карточка сотрудника</h2>
+        <div class="form-group">
+            <label>Серия паспорта</label>
+            <input type="text" name="passport_series" class="form-group__input" value="{{ card.passport_series|default:'' }}">
+        </div>
+        <div class="form-group">
+            <label>Номер паспорта</label>
+            <input type="text" name="passport_number" class="form-group__input" value="{{ card.passport_number|default:'' }}">
+        </div>
+        <div class="form-group">
+            <label>Гражданство</label>
+            <input type="text" name="citizenship" class="form-group__input" value="{{ card.citizenship|default:'' }}">
+        </div>
+        <div class="form-group">
+            <label>Адрес прописки</label>
+            <input type="text" name="address" class="form-group__input" value="{{ card.address|default:'' }}">
+        </div>
+        <div class="form-group">
+            <label>СНИЛС</label>
+            <input type="text" name="snils" class="form-group__input" value="{{ card.snils|default:'' }}">
+        </div>
+        <div class="form-group">
+            <label>ИНН</label>
+            <input type="text" name="inn" class="form-group__input" value="{{ card.inn|default:'' }}">
+        </div>
+    </div>
+
+    <div class="edit-section">
+        <h2>Биометрия</h2>
+        <p class="biometric-placeholder">🔒 Добавление биометрии будет доступно через API</p>
+    </div>
+
+    <button type="submit" class="login-card__btn">Сохранить</button>
+</form>
+
+{% endblock %}

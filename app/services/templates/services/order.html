@@ -1,0 +1,35 @@
+{% extends 'services/base.html' %}
+{% block title %}Заявка #{{ order.id }}{% endblock %}
+
+{% block content %}
+
+<div class="order">
+
+    <div class="order__header">
+        <h1>Заявка #{{ order.id }}</h1>
+        <p class="order__client">👤 {{ order.client }}</p>
+        <p class="order__date">📅 {{ order.created }}</p>
+        <p class="order__total">Итого: <strong>{{ total }} ₽</strong></p>
+    </div>
+
+    <div class="order__services">
+        {% for os in order_services %}
+        <div class="order-card">
+            <img class="order-card__img" src="{{ os.service.image_url }}" alt="{{ os.service.name }}">
+            <div class="order-card__info">
+                <p class="order-card__name">{{ os.service.name }}</p>
+                <p class="order-card__price">{{ os.service.price }} ₽</p>
+                <p class="order-card__date">{{ os.service.date }}</p>
+            </div>
+            <div class="order-card__mm">
+                <p>Кол-во: <strong>{{ os.quantity }}</strong></p>
+                <p>Главная: <strong>{% if os.is_main %}Да{% else %}Нет{% endif %}</strong></p>
+                <p>Комментарий: <strong>{{ os.comment|default:"—" }}</strong></p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+{% endblock %}
