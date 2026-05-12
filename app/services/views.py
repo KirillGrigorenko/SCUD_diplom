@@ -8,7 +8,19 @@ from .models import Employee, Administrator, AccessHistory, EmployeeCard, Positi
 from django.conf import settings
 from minio import Minio
 import io
+import re
 from PIL import Image
+
+COUNTRIES = [
+    'Россия', 'Беларусь', 'Казахстан', 'Украина', 'Узбекистан',
+    'Таджикистан', 'Кыргызстан', 'Азербайджан', 'Армения', 'Грузия',
+    'Молдова', 'Туркменистан', 'Германия', 'Франция', 'Италия',
+    'Испания', 'Польша', 'Чехия', 'Австрия', 'Швейцария',
+    'Нидерланды', 'Бельгия', 'Швеция', 'Норвегия', 'Финляндия',
+    'Дания', 'Великобритания', 'США', 'Канада', 'Австралия',
+    'Китай', 'Япония', 'Индия', 'Турция', 'Израиль',
+    'ОАЭ', 'Бразилия', 'Аргентина', 'Мексика', 'Египет', 'Другое',
+]
 
 
 def get_minio_url(key, ext='jpg'):
@@ -186,24 +198,27 @@ def employee_edit(request, pk):
 
         employee.save()
 
-        card, _ = EmployeeCard.objects.get_or_create(employee=employee)
-        card.passport_series = request.POST.get('passport_series', '')
-        card.passport_number = request.POST.get('passport_number', '')
-        card.citizenship = request.POST.get('citizenship', '')
-        card.address = request.POST.get('address', '')
-        card.snils = request.POST.get('snils', '')
-        card.inn = request.POST.get('inn', '')
-        position_id = request.POST.get('position', '').strip()
-        if position_id:
-            try:
-                card.position = Position.objects.get(pk=position_id)
-            except Position.DoesNotExist:
-                card.position = None
-        else:
-            card.position = None
-        card.save()
+        inn = request.POST.get('inn', '').strip()
+        if inn and not re.fullmatch(r'\d{12}', inn):
+            error = 'ИНН должен содержать ровно 12 цифр.'
 
         if not error:
+            card, _ = EmployeeCard.objects.get_or_create(employee=employee)
+            card.passport_series = request.POST.get('passport_series', '')
+            card.passport_number = request.POST.get('passport_number', '')
+            card.citizenship = request.POST.get('citizenship', '')
+            card.address = request.POST.get('address', '')
+            card.snils = request.POST.get('snils', '')
+            card.inn = inn
+            position_id = request.POST.get('position', '').strip()
+            if position_id:
+                try:
+                    card.position = Position.objects.get(pk=position_id)
+                except Position.DoesNotExist:
+                    card.position = None
+            else:
+                card.position = None
+            card.save()
             return redirect('employee_detail', pk=pk)
 
     return render(request, 'services/employee_edit.html', {
@@ -212,6 +227,7 @@ def employee_edit(request, pk):
         'photo_url': get_minio_url(employee.photo),
         'positions': Position.objects.select_related('department').all(),
         'departments': Department.objects.all(),
+        'countries': COUNTRIES,
         'error': error,
     })
 
@@ -234,8 +250,12 @@ def employee_create(request):
         hire_date = request.POST.get('hire_date', '').strip()
         status = request.POST.get('status', 'active')
 
+        inn = request.POST.get('inn', '').strip()
+
         if not username or not password or not last_name or not first_name or not hire_date:
             error = 'Заполните все обязательные поля.'
+        elif inn and not re.fullmatch(r'\d{12}', inn):
+            error = 'ИНН должен содержать ровно 12 цифр.'
         elif User.objects.filter(username=username).exists():
             error = f'Пользователь «{username}» уже существует.'
         else:
@@ -265,7 +285,6 @@ def employee_create(request):
             citizenship = request.POST.get('citizenship', '')
             address = request.POST.get('address', '')
             snils = request.POST.get('snils', '')
-            inn = request.POST.get('inn', '')
 
             if any([position_id, passport_series, passport_number, citizenship, address, snils, inn]):
                 card = EmployeeCard.objects.create(employee=employee)
@@ -288,6 +307,7 @@ def employee_create(request):
     return render(request, 'services/employee_create.html', {
         'positions': positions,
         'departments': departments,
+        'countries': COUNTRIES,
         'error': error,
         'post': request.POST,
     })

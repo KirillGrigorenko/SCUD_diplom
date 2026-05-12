@@ -99,7 +99,12 @@
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">Гражданство</span>
-                        <input class="input" type="text" name="citizenship" value="{{ card.citizenship|default:'' }}">
+                        <select class="input" name="citizenship">
+                            <option value="">— Не выбрано —</option>
+                            {% for c in countries %}
+                            <option value="{{ c }}" {% if card.citizenship == c %}selected{% endif %}>{{ c }}</option>
+                            {% endfor %}
+                        </select>
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">СНИЛС</span>
@@ -107,7 +112,7 @@
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">ИНН</span>
-                        <input class="input" type="text" name="inn" value="{{ card.inn|default:'' }}">
+                        <input class="input" id="f-inn" type="text" name="inn" value="{{ card.inn|default:'' }}">
                     </label>
                     <label class="input-label edit-fields__full">
                         <span class="input-label__text">Адрес прописки</span>
@@ -116,6 +121,7 @@
                 </div>
             </div>
 
+            <div id="inn-error" class="form-error" style="display:none">ИНН должен содержать ровно 12 цифр.</div>
             <div class="form-actions">
                 <a class="button button--outline" href="{% url 'employee_detail' employee.id %}">Отмена</a>
                 <button class="button button--primary" type="submit">Сохранить изменения</button>
@@ -137,6 +143,34 @@ document.getElementById('photo-input').addEventListener('change', function () {
     };
     reader.readAsDataURL(file);
 });
+
+(function () {
+    var innInput = document.getElementById('f-inn');
+    var innError = document.getElementById('inn-error');
+    var form = innInput ? innInput.closest('form') : null;
+
+    function validateInn() {
+        var val = innInput.value.trim();
+        if (val === '') { innError.style.display = 'none'; return true; }
+        if (/^\d{12}$/.test(val)) { innError.style.display = 'none'; return true; }
+        innError.style.display = 'block';
+        return false;
+    }
+
+    if (innInput) {
+        innInput.addEventListener('input', validateInn);
+        innInput.addEventListener('blur', validateInn);
+    }
+
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            if (!validateInn()) {
+                e.preventDefault();
+                innInput.focus();
+            }
+        });
+    }
+}());
 </script>
 
 {% endblock %}

@@ -113,7 +113,12 @@
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">Гражданство</span>
-                        <input class="input" id="f-citizenship" type="text" name="citizenship" value="{{ post.citizenship|default:'' }}">
+                        <select class="input" id="f-citizenship" name="citizenship">
+                            <option value="">— Не выбрано —</option>
+                            {% for c in countries %}
+                            <option value="{{ c }}" {% if post.citizenship == c %}selected{% endif %}>{{ c }}</option>
+                            {% endfor %}
+                        </select>
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">СНИЛС</span>
@@ -130,6 +135,7 @@
                 </div>
             </div>
 
+            <div id="inn-error" class="form-error" style="display:none">ИНН должен содержать ровно 12 цифр.</div>
             <div class="form-actions">
                 <a class="button button--outline" href="{% url 'employee_list' %}">Отмена</a>
                 <button class="button button--primary" type="submit">Создать сотрудника</button>
@@ -149,6 +155,35 @@ document.getElementById('photo-input').addEventListener('change', function () {
     reader.onload = function (e) { document.getElementById('photo-preview').src = e.target.result; };
     reader.readAsDataURL(file);
 });
+
+// ИНН: только 12 цифр
+(function () {
+    var innInput = document.getElementById('f-inn');
+    var innError = document.getElementById('inn-error');
+    var form = innInput ? innInput.closest('form') : null;
+
+    function validateInn() {
+        var val = innInput.value.trim();
+        if (val === '') { innError.style.display = 'none'; return true; }
+        if (/^\d{12}$/.test(val)) { innError.style.display = 'none'; return true; }
+        innError.style.display = 'block';
+        return false;
+    }
+
+    if (innInput) {
+        innInput.addEventListener('input', validateInn);
+        innInput.addEventListener('blur', validateInn);
+    }
+
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            if (!validateInn()) {
+                e.preventDefault();
+                innInput.focus();
+            }
+        });
+    }
+}());
 
 (function () {
     var lastNames = ['Иванов','Смирнов','Кузнецов','Попов','Васильев','Петров','Соколов','Михайлов','Новиков','Федоров','Морозов','Волков','Алексеев','Лебедев','Семенов','Егоров','Павлов','Козлов','Степанов','Николаев','Орлов','Андреев','Макаров','Никитин','Захаров','Зайцев','Соловьев','Борисов','Яковлев','Григорьев'];
@@ -213,7 +248,7 @@ document.getElementById('photo-input').addEventListener('change', function () {
         document.getElementById('f-hire-date').value       = randDate();
         document.getElementById('f-passport-series').value = randDigits(4);
         document.getElementById('f-passport-number').value = randDigits(6);
-        document.getElementById('f-citizenship').value     = 'Россия';
+        setSelect('f-citizenship', 'Россия');
         document.getElementById('f-snils').value           = randSnils();
         document.getElementById('f-inn').value             = randDigits(12);
         document.getElementById('f-address').value         = 'г. ' + city + ', ул. ' + street + ', д. ' + rndInt(1,120) + ', кв. ' + rndInt(1,200);
