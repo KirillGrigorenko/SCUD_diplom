@@ -47,12 +47,14 @@ export default function EmployeeDetailPage() {
                 Редактировать
               </Link>
             )}
-            <Link
-              href="/employees"
-              className="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-slate-500"
-            >
-              Назад к списку
-            </Link>
+            {isAdmin && (
+              <Link
+                href="/employees"
+                className="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-slate-500"
+              >
+                Назад к списку
+              </Link>
+            )}
             <button
               type="button"
               onClick={() => logout()}
