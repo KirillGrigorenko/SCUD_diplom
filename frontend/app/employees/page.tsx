@@ -68,13 +68,21 @@ export default function EmployeesPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             {isAdmin && (
-              <Link
-                href="/employees/new"
-                className="inline-flex items-center gap-2 rounded-2xl border border-sky-600 bg-sky-600/10 px-4 py-3 text-sm font-semibold text-sky-300 transition hover:bg-sky-600 hover:text-white"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Новый сотрудник
-              </Link>
+              <>
+                <Link
+                  href="/history"
+                  className="inline-flex items-center gap-2 rounded-2xl border border-slate-600 bg-slate-800/60 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-slate-400"
+                >
+                  История проходов
+                </Link>
+                <Link
+                  href="/employees/new"
+                  className="inline-flex items-center gap-2 rounded-2xl border border-sky-600 bg-sky-600/10 px-4 py-3 text-sm font-semibold text-sky-300 transition hover:bg-sky-600 hover:text-white"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Новый сотрудник
+                </Link>
+              </>
             )}
             <button
               type="button"

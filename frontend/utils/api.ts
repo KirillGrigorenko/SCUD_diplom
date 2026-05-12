@@ -82,6 +82,24 @@ export async function createEmployee(formData: FormData): Promise<{ data?: any; 
   return { data: json };
 }
 
+export async function getAllHistory(params?: {
+  employee?: string;
+  result?: string;
+  date_from?: string;
+  date_to?: string;
+}): Promise<any[]> {
+  const qs = new URLSearchParams();
+  if (params?.employee) qs.set('employee', params.employee);
+  if (params?.result) qs.set('result', params.result);
+  if (params?.date_from) qs.set('date_from', params.date_from);
+  if (params?.date_to) qs.set('date_to', params.date_to);
+  const url = `${API}/history/${qs.toString() ? '?' + qs.toString() : ''}`;
+  const response = await fetch(url, { credentials: 'include' });
+  if (response.status === 401) { handleUnauthorized(); return []; }
+  if (!response.ok) return [];
+  return response.json();
+}
+
 export async function getHistory(id: string): Promise<any[]> {
   const response = await fetch(`${API}/employees/${id}/history/`, { credentials: 'include' });
   if (response.status === 401) { handleUnauthorized(); return []; }

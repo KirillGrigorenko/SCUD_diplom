@@ -2,6 +2,7 @@ import re
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -238,6 +239,52 @@ class DepartmentListAPIView(APIView):
     def get(self, request):
         departments = Department.objects.all()
         data = [{'pk': d.pk, 'name': d.name} for d in departments]
+        return Response(data)
+
+
+class AllHistoryAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if not hasattr(request.user, 'administrator'):
+            return Response({'error': 'Нет доступа'}, status=403)
+
+        qs = AccessHistory.objects.select_related('employee').order_by('-datetime')
+
+        employee_q = request.query_params.get('employee', '').strip()
+        if employee_q:
+            qs = qs.filter(
+                Q(employee__last_name__icontains=employee_q) |
+                Q(employee__first_name__icontains=employee_q) |
+                Q(employee__middle_name__icontains=employee_q)
+            )
+
+        result_f = request.query_params.get('result', '').strip()
+        if result_f in ('allowed', 'denied'):
+            qs = qs.filter(result=result_f)
+
+        date_from = request.query_params.get('date_from', '').strip()
+        if date_from:
+            qs = qs.filter(datetime__date__gte=date_from)
+
+        date_to = request.query_params.get('date_to', '').strip()
+        if date_to:
+            qs = qs.filter(datetime__date__lte=date_to)
+
+        qs = qs[:500]
+
+        data = [
+            {
+                'id': h.id,
+                'datetime': h.datetime.isoformat(),
+                'employee_id': h.employee.id,
+                'employee_name': str(h.employee),
+                'access_point': h.access_point,
+                'result': h.result,
+                'method': h.method,
+            }
+            for h in qs
+        ]
         return Response(data)
 
 
