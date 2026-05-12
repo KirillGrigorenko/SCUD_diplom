@@ -113,18 +113,26 @@ document.addEventListener('DOMContentLoaded', function () {
             dropdown.appendChild(li);
         });
 
-        function openDropdown() {
+        function reposition() {
             var r = trigger.getBoundingClientRect();
             dropdown.style.top = (r.bottom + 4) + 'px';
             dropdown.style.left = r.left + 'px';
             dropdown.style.width = r.width + 'px';
+        }
+
+        function openDropdown() {
+            reposition();
             dropdown.style.display = 'block';
             wrapper.classList.add('custom-select--open');
+            window.addEventListener('scroll', reposition, true);
+            window.addEventListener('resize', reposition);
         }
 
         function closeDropdown() {
             dropdown.style.display = 'none';
             wrapper.classList.remove('custom-select--open');
+            window.removeEventListener('scroll', reposition, true);
+            window.removeEventListener('resize', reposition);
         }
 
         trigger.addEventListener('click', function (e) {
