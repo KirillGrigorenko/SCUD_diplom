@@ -3,41 +3,71 @@
 
 {% block content %}
 
-<div class="page-header">
-    <h1>Список сотрудников</h1>
-</div>
+<section class="page-header page-header--stacked">
+    <div class="page-header__main">
+        <h1 class="page-title">Сотрудники</h1>
+        <p class="page-subtitle">Обзор текущих сотрудников и их статусов.</p>
+    </div>
 
-<form class="search-form" method="get">
-    <input
-        class="search-form__input"
-        type="text"
-        name="q"
-        value="{{ query }}"
-        placeholder="Поиск по фамилии..."
-    >
-    <input
-        class="search-form__input"
-        type="text"
-        name="department"
-        value="{{ department }}"
-        placeholder="Фильтр по отделу..."
-    >
-    <button class="search-form__btn" type="submit">Найти</button>
-</form>
+    <div class="page-stats">
+        <div class="stat">
+            <span class="stat__name">Всего</span>
+            <span class="stat__value">{{ stats.total }}</span>
+        </div>
+        <div class="stat">
+            <span class="stat__name">Активных</span>
+            <span class="stat__value">{{ stats.active }}</span>
+        </div>
+        <div class="stat">
+            <span class="stat__name">Заблок.</span>
+            <span class="stat__value">{{ stats.blocked }}</span>
+        </div>
+        <div class="stat">
+            <span class="stat__name">Увол.</span>
+            <span class="stat__value">{{ stats.fired }}</span>
+        </div>
+    </div>
+</section>
 
-<div class="employees-grid">
+<section class="search-panel">
+    <form class="search-form" method="get" autocomplete="off">
+        <div class="search-fields">
+            <input class="search-input" type="text" name="q" value="{{ query }}" placeholder="Поиск по ФИО..." />
+            <input class="search-input" type="text" name="department" value="{{ department }}" placeholder="Отдел (например, IT)" />
+            <select class="search-select" name="status">
+                <option value="">Все статусы</option>
+                <option value="active" {% if status == 'active' %}selected{% endif %}>Активен</option>
+                <option value="blocked" {% if status == 'blocked' %}selected{% endif %}>Заблокирован</option>
+                <option value="fired" {% if status == 'fired' %}selected{% endif %}>Уволен</option>
+            </select>
+        </div>
+        <button class="button button--secondary search-submit" type="submit">Найти</button>
+    </form>
+</section>
+
+<section class="employees-grid">
     {% for employee in employees %}
-    <a href="{% url 'employee_detail' employee.id %}" class="card">
-        <img class="card__img" src="{{ employee.image_url }}" alt="{{ employee.full_name }}">
-        <div class="card__body">
-            <h3 class="card__name">{{ employee.full_name }}</h3>
-            <p class="card__status">{{ employee.get_status_display }}</p>
-            <p class="card__date">с {{ employee.hire_date }}</p>
+    <a href="{% url 'employee_detail' employee.id %}" class="employee-card" aria-label="{{ employee.full_name }}">
+        <div class="employee-card__media">
+            <img class="employee-card__photo" src="{{ employee.image_url }}" alt="{{ employee.full_name }}">
+            <div class="employee-card__status {% if employee.status == 'active' %}status--success{% elif employee.status == 'blocked' %}status--warning{% else %}status--danger{% endif %}">
+                {{ employee.get_status_display }}
+            </div>
+        </div>
+        <div class="employee-card__body">
+            <h3 class="employee-card__name">{{ employee.full_name }}</h3>
+            {% if employee.position_name %}
+            <p class="employee-card__meta">{{ employee.position_name }}{% if employee.department_name %} — {{ employee.department_name }}{% endif %}</p>
+            {% endif %}
+            <p class="employee-card__meta">Сотрудник с {{ employee.hire_date }}</p>
         </div>
     </a>
     {% empty %}
-    <p class="empty">Сотрудники не найдены</p>
+    <div class="empty-state">
+        <h2>Ничего не найдено</h2>
+        <p>По текущим фильтрам сотрудники не найдены. Попробуйте изменить запрос или очистить фильтры.</p>
+    </div>
     {% endfor %}
-</div>
+</section>
 
 {% endblock %}

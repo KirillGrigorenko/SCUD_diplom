@@ -1,27 +1,151 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="theme-dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#070f1a">
     <title>СКУД — {% block title %}{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
+    <div class="app">
+        <header class="topbar">
+            <div class="topbar__left">
+                <a class="topbar__brand" href="{% url 'employee_list' %}">
+                    <svg class="topbar__logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M12 2L3 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" fill="currentColor"/>
+                        <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="topbar__name">СКУД</span>
+                </a>
 
-<header class="header">
-    <div class="header__inner">
-        <a href="{% url 'employee_list' %}" class="header__home">🏠 Домой</a>
-        <span class="header__title">СКУД — Система контроля доступа</span>
-        {% if request.user.is_authenticated %}
-        <a href="{% url 'logout' %}" class="header__logout">Выйти</a>
-        {% endif %}
+                <div class="topbar__meta">
+                    <span class="topbar__tag">Система контроля доступа</span>
+                    {% if request.user.is_authenticated %}
+                    <nav class="topbar__nav">
+                        <a class="topbar__nav-link" href="{% url 'employee_list' %}">Сотрудники</a>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="topbar__right">
+                {% if request.user.is_authenticated %}
+                    <span class="topbar__user">Привет, {{ request.user.get_full_name|default:request.user.username }}</span>
+                    <a class="topbar__action" href="{% url 'logout' %}">Выйти</a>
+                {% else %}
+                    <a class="topbar__action" href="{% url 'login' %}">Войти</a>
+                {% endif %}
+            </div>
+        </header>
+
+        <main class="main">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="footer">
+            <div class="footer__inner">
+                <span class="footer__copyright">© {% now "Y" %} СКУД</span>
+                <span class="footer__hint">Система управления доступом</span>
+            </div>
+        </footer>
     </div>
-</header>
 
-<main class="main">
-    {% block content %}{% endblock %}
-</main>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('select').forEach(function (select) {
+        var wrapper = document.createElement('div');
+        wrapper.className = 'custom-select';
 
+        var trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'custom-select__trigger';
+
+        var valueSpan = document.createElement('span');
+        valueSpan.textContent = select.options[select.selectedIndex]
+            ? select.options[select.selectedIndex].text : '';
+
+        var arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        arrow.setAttribute('class', 'custom-select__arrow');
+        arrow.setAttribute('width', '12');
+        arrow.setAttribute('height', '8');
+        arrow.setAttribute('viewBox', '0 0 12 8');
+        arrow.setAttribute('fill', 'none');
+        var arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        arrowPath.setAttribute('d', 'M1 1l5 5 5-5');
+        arrowPath.setAttribute('stroke', 'currentColor');
+        arrowPath.setAttribute('stroke-width', '1.5');
+        arrowPath.setAttribute('stroke-linecap', 'round');
+        arrow.appendChild(arrowPath);
+
+        trigger.appendChild(valueSpan);
+        trigger.appendChild(arrow);
+
+        var dropdown = document.createElement('ul');
+        dropdown.className = 'custom-select__dropdown';
+        dropdown.style.position = 'fixed';
+        dropdown.style.zIndex = '9999';
+        dropdown.style.display = 'none';
+
+        Array.from(select.options).forEach(function (opt) {
+            var li = document.createElement('li');
+            li.className = 'custom-select__option' +
+                (opt.selected ? ' custom-select__option--selected' : '');
+            li.textContent = opt.text;
+
+            li.addEventListener('mousedown', function (e) { e.preventDefault(); });
+            li.addEventListener('click', function () {
+                select.value = opt.value;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                valueSpan.textContent = opt.text;
+                dropdown.querySelectorAll('.custom-select__option')
+                    .forEach(function (el) { el.classList.remove('custom-select__option--selected'); });
+                li.classList.add('custom-select__option--selected');
+                closeDropdown();
+            });
+
+            dropdown.appendChild(li);
+        });
+
+        function openDropdown() {
+            var r = trigger.getBoundingClientRect();
+            dropdown.style.top = (r.bottom + 4) + 'px';
+            dropdown.style.left = r.left + 'px';
+            dropdown.style.width = r.width + 'px';
+            dropdown.style.display = 'block';
+            wrapper.classList.add('custom-select--open');
+        }
+
+        function closeDropdown() {
+            dropdown.style.display = 'none';
+            wrapper.classList.remove('custom-select--open');
+        }
+
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            dropdown.style.display === 'none' ? openDropdown() : closeDropdown();
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!wrapper.contains(e.target) && !dropdown.contains(e.target)) {
+                closeDropdown();
+            }
+        });
+
+        document.body.appendChild(dropdown);
+
+        select.parentNode.insertBefore(wrapper, select);
+        select.style.display = 'none';
+        wrapper.appendChild(select);
+        wrapper.appendChild(trigger);
+    });
+});
+</script>
 </body>
 </html>

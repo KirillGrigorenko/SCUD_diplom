@@ -3,44 +3,86 @@
 
 {% block content %}
 
-<div class="detail">
-    <div class="detail__media">
-        <img class="detail__img" src="{{ employee.image_url }}" alt="{{ employee.full_name }}">
-    </div>
-
-    <div class="detail__info">
-        <h1 class="detail__name">{{ employee.full_name }}</h1>
-        {% if request.user.administrator %}
-            <a href="{% url 'employee_edit' employee.id %}" class="btn-edit">✏️ Редактировать</a>
-        {% endif %}
-        <p class="detail__status">Статус: {{ employee.get_status_display }}</p>
-        <p class="detail__date">Дата найма: {{ employee.hire_date }}</p>
-
-        {% if employee.employeecard %}
-        <div class="detail__card">
-            <h2>Карточка сотрудника</h2>
-            <p>Должность: {{ employee.employeecard.position }}</p>
-            <p>Гражданство: {{ employee.employeecard.citizenship }}</p>
-            <p>Адрес: {{ employee.employeecard.address }}</p>
-            <p>СНИЛС: {{ employee.employeecard.snils }}</p>
-            <p>ИНН: {{ employee.employeecard.inn }}</p>
+<div class="detail-grid">
+    <section class="detail-card">
+        <div class="detail-card__media">
+            <img class="detail-card__photo" src="{{ employee.image_url }}" alt="{{ employee.full_name }}">
+            {% if request.user.administrator %}
+            <a class="button button--outline detail-card__edit" href="{% url 'employee_edit' employee.id %}">✏️ Редактировать</a>
+            {% endif %}
         </div>
-        {% endif %}
 
-        <div class="detail__history">
+        <div class="detail-card__info">
+            <h1 class="detail-card__title">{{ employee.full_name }}</h1>
+
+            <div class="pill-list">
+                <span class="pill {% if employee.status == 'active' %}pill--success{% elif employee.status == 'blocked' %}pill--warning{% else %}pill--danger{% endif %}">
+                    {{ employee.get_status_display }}
+                </span>
+                <span class="pill">Нанят: {{ employee.hire_date }}</span>
+            </div>
+
+            {% if employee.employeecard %}
+            <div class="detail-section">
+                <h2 class="detail-section__title">Карточка сотрудника</h2>
+                <div class="detail-grid__cells">
+                    <div class="detail-meta">
+                        <span class="detail-meta__label">Должность</span>
+                        <span class="detail-meta__value">{{ employee.employeecard.position }}</span>
+                    </div>
+                    <div class="detail-meta">
+                        <span class="detail-meta__label">Гражданство</span>
+                        <span class="detail-meta__value">{{ employee.employeecard.citizenship }}</span>
+                    </div>
+                    <div class="detail-meta">
+                        <span class="detail-meta__label">Адрес</span>
+                        <span class="detail-meta__value">{{ employee.employeecard.address }}</span>
+                    </div>
+                    <div class="detail-meta">
+                        <span class="detail-meta__label">СНИЛС</span>
+                        <span class="detail-meta__value">{{ employee.employeecard.snils }}</span>
+                    </div>
+                    <div class="detail-meta">
+                        <span class="detail-meta__label">ИНН</span>
+                        <span class="detail-meta__value">{{ employee.employeecard.inn }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="history">
+        <header class="history__header">
             <h2>История проходов</h2>
+            <p class="history__subtitle">Последние события доступа.</p>
+        </header>
+
+        {% if history %}
+        <div class="history-table">
+            <div class="history-table__head">
+                <span>Дата / время</span>
+                <span>Точка доступа</span>
+                <span>Результат</span>
+                <span>Способ</span>
+            </div>
             {% for event in history %}
-            <div class="history-item">
+            <div class="history-table__row">
                 <span>{{ event.datetime }}</span>
                 <span>{{ event.access_point }}</span>
-                <span>{{ event.get_result_display }}</span>
+                <span class="tag {% if event.result == 'allowed' %}tag--success{% else %}tag--danger{% endif %}">
+                    {{ event.get_result_display }}
+                </span>
                 <span>{{ event.get_method_display }}</span>
             </div>
-            {% empty %}
-            <p>История проходов пуста</p>
             {% endfor %}
         </div>
-    </div>
+        {% else %}
+        <div class="empty-state">
+            <p>Записей о проходах пока нет.</p>
+        </div>
+        {% endif %}
+    </section>
 </div>
 
 {% endblock %}
