@@ -3,74 +3,83 @@
 
 {% block content %}
 
-<section class="page-header page-header--stacked">
-    <div class="page-header__main">
-        <h1 class="page-title">Сотрудники</h1>
-        <p class="page-subtitle">Обзор текущих сотрудников и их статусов.</p>
-        {% if request.user.administrator %}
-        <a class="button button--primary" href="{% url 'employee_create' %}" style="margin-top:12px;width:fit-content;">+ Добавить сотрудника</a>
-        {% endif %}
+<div class="list-header">
+    <div class="list-header__left">
+        <p class="list-header__sub">Система контроля доступа</p>
+        <h1 class="list-header__title">Сотрудники</h1>
     </div>
+    {% if request.user.administrator %}
+    <a class="button button--primary" href="{% url 'employee_create' %}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Добавить сотрудника
+    </a>
+    {% endif %}
+</div>
 
-    <div class="page-stats">
-        <div class="stat">
-            <span class="stat__name">Всего</span>
-            <span class="stat__value">{{ stats.total }}</span>
-        </div>
-        <div class="stat">
-            <span class="stat__name">Активных</span>
-            <span class="stat__value">{{ stats.active }}</span>
-        </div>
-        <div class="stat">
-            <span class="stat__name">Заблок.</span>
-            <span class="stat__value">{{ stats.blocked }}</span>
-        </div>
-        <div class="stat">
-            <span class="stat__name">Увол.</span>
-            <span class="stat__value">{{ stats.fired }}</span>
-        </div>
+<div class="stats-row">
+    <div class="stat-card">
+        <span class="stat-card__value">{{ stats.total }}</span>
+        <span class="stat-card__label">Всего</span>
     </div>
-</section>
+    <div class="stat-card stat-card--success">
+        <span class="stat-card__value">{{ stats.active }}</span>
+        <span class="stat-card__label">Активных</span>
+    </div>
+    <div class="stat-card stat-card--warning">
+        <span class="stat-card__value">{{ stats.blocked }}</span>
+        <span class="stat-card__label">Заблокировано</span>
+    </div>
+    <div class="stat-card stat-card--danger">
+        <span class="stat-card__value">{{ stats.fired }}</span>
+        <span class="stat-card__label">Уволено</span>
+    </div>
+</div>
 
-<section class="search-panel">
-    <form class="search-form" method="get" autocomplete="off">
-        <div class="search-fields">
-            <input class="search-input" type="text" name="q" value="{{ query }}" placeholder="Поиск по ФИО..." />
-            <input class="search-input" type="text" name="department" value="{{ department }}" placeholder="Отдел (например, IT)" />
-            <select class="search-select" name="status">
+<div class="filter-bar">
+    <form class="filter-bar__form" method="get" autocomplete="off">
+        <div class="filter-bar__fields">
+            <div class="filter-bar__field">
+                <svg class="filter-bar__icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input class="filter-bar__input" type="text" name="q" value="{{ query }}" placeholder="Поиск по ФИО…">
+            </div>
+            <div class="filter-bar__field">
+                <svg class="filter-bar__icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8L2 7h20l-6-4z"/></svg>
+                <input class="filter-bar__input" type="text" name="department" value="{{ department }}" placeholder="Отдел…">
+            </div>
+            <select class="filter-bar__select" name="status">
                 <option value="">Все статусы</option>
                 <option value="active" {% if status == 'active' %}selected{% endif %}>Активен</option>
                 <option value="blocked" {% if status == 'blocked' %}selected{% endif %}>Заблокирован</option>
                 <option value="fired" {% if status == 'fired' %}selected{% endif %}>Уволен</option>
             </select>
         </div>
-        <button class="button button--secondary search-submit" type="submit">Найти</button>
+        <button class="button button--secondary" type="submit">Найти</button>
     </form>
-</section>
+</div>
 
-<section class="employees-grid">
+<div class="emp-grid">
     {% for employee in employees %}
-    <a href="{% url 'employee_detail' employee.id %}" class="employee-card" aria-label="{{ employee.full_name }}">
-        <div class="employee-card__media">
-            <img class="employee-card__photo" src="{{ employee.image_url }}" alt="{{ employee.full_name }}">
-            <div class="employee-card__status {% if employee.status == 'active' %}status--success{% elif employee.status == 'blocked' %}status--warning{% else %}status--danger{% endif %}">
+    <a href="{% url 'employee_detail' employee.id %}" class="emp-card">
+        <div class="emp-card__photo-wrap">
+            <img class="emp-card__photo" src="{{ employee.image_url }}" alt="{{ employee.full_name }}">
+            <span class="emp-card__badge {% if employee.status == 'active' %}emp-card__badge--success{% elif employee.status == 'blocked' %}emp-card__badge--warning{% else %}emp-card__badge--danger{% endif %}">
                 {{ employee.get_status_display }}
-            </div>
+            </span>
         </div>
-        <div class="employee-card__body">
-            <h3 class="employee-card__name">{{ employee.full_name }}</h3>
+        <div class="emp-card__body">
+            <p class="emp-card__name">{{ employee.full_name }}</p>
             {% if employee.position_name %}
-            <p class="employee-card__meta">{{ employee.position_name }}{% if employee.department_name %} — {{ employee.department_name }}{% endif %}</p>
+            <p class="emp-card__pos">{{ employee.position_name }}{% if employee.department_name %} · {{ employee.department_name }}{% endif %}</p>
             {% endif %}
-            <p class="employee-card__meta">Сотрудник с {{ employee.hire_date }}</p>
+            <p class="emp-card__date">с {{ employee.hire_date }}</p>
         </div>
     </a>
     {% empty %}
-    <div class="empty-state">
+    <div class="empty-state" style="grid-column:1/-1">
         <h2>Ничего не найдено</h2>
-        <p>По текущим фильтрам сотрудники не найдены. Попробуйте изменить запрос или очистить фильтры.</p>
+        <p>Попробуйте изменить фильтры или очистить поиск.</p>
     </div>
     {% endfor %}
-</section>
+</div>
 
 {% endblock %}
