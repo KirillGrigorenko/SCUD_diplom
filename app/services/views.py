@@ -339,3 +339,19 @@ def position_create(request):
         label += f' · {position.department.name}'
 
     return JsonResponse({'pk': position.pk, 'label': label})
+
+
+@login_required(login_url='login')
+def department_create(request):
+    if not hasattr(request.user, 'administrator'):
+        return JsonResponse({'error': 'Нет доступа'}, status=403)
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
+
+    name = request.POST.get('name', '').strip()
+    if not name:
+        return JsonResponse({'error': 'Название обязательно'}, status=400)
+
+    department = Department.objects.create(name=name)
+    return JsonResponse({'pk': department.pk, 'name': department.name})

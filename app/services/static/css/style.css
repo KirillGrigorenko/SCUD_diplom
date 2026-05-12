@@ -1383,6 +1383,18 @@ select.input {
     color: #fff;
 }
 
+.btn-add--confirm:hover {
+    background: var(--success);
+    border-color: var(--success);
+    color: #fff;
+}
+
+.btn-add--danger:hover {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
+}
+
 /* ============================================================
    MODAL
    ============================================================ */

@@ -14,13 +14,30 @@
             </label>
             <label class="input-label" style="margin-top:12px">
                 <span class="input-label__text">Отдел</span>
-                <select class="input" id="modal-pos-dept">
-                    <option value="">— Не выбран —</option>
-                    {% for dept in departments %}
-                    <option value="{{ dept.pk }}">{{ dept.name }}</option>
-                    {% endfor %}
-                </select>
+                <div class="input-with-add">
+                    <select class="input" id="modal-pos-dept">
+                        <option value="">— Не выбран —</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.pk }}">{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" id="btn-add-dept" class="btn-add" title="Добавить отдел">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                </div>
             </label>
+            <div id="new-dept-row" style="display:none; margin-top:8px;">
+                <div id="dept-error" class="form-error" style="display:none; margin-bottom:6px;"></div>
+                <div class="input-with-add">
+                    <input class="input" type="text" id="new-dept-name" placeholder="Название отдела">
+                    <button type="button" id="btn-dept-save" class="btn-add btn-add--confirm" title="Сохранить отдел">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </button>
+                    <button type="button" id="btn-dept-cancel" class="btn-add btn-add--danger" title="Отмена">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="modal__footer">
             <button type="button" class="button button--outline" id="modal-cancel">Отмена</button>
@@ -41,9 +58,17 @@
     var errorBox = document.getElementById('modal-error');
     var positionSelect = document.getElementById('f-position');
 
+    var btnAddDept = document.getElementById('btn-add-dept');
+    var newDeptRow = document.getElementById('new-dept-row');
+    var newDeptName = document.getElementById('new-dept-name');
+    var btnDeptSave = document.getElementById('btn-dept-save');
+    var btnDeptCancel = document.getElementById('btn-dept-cancel');
+    var deptError = document.getElementById('dept-error');
+
     function openModal() {
         nameInput.value = '';
         deptSelect.value = '';
+        hideNewDeptRow();
         errorBox.style.display = 'none';
         modal.style.display = 'flex';
         setTimeout(function () { nameInput.focus(); }, 50);
@@ -51,6 +76,20 @@
 
     function closeModal() {
         modal.style.display = 'none';
+        hideNewDeptRow();
+    }
+
+    function showNewDeptRow() {
+        newDeptRow.style.display = 'block';
+        newDeptName.value = '';
+        deptError.style.display = 'none';
+        btnAddDept.style.display = 'none';
+        setTimeout(function () { newDeptName.focus(); }, 50);
+    }
+
+    function hideNewDeptRow() {
+        newDeptRow.style.display = 'none';
+        btnAddDept.style.display = '';
     }
 
     function setSelectValue(select, value, text) {
@@ -63,8 +102,6 @@
         var wrapper = select.closest('.custom-select');
         if (!wrapper) return;
         var span = wrapper.querySelector('.custom-select__trigger span');
-
-        // Rebuild dropdown options list
         var dropdown = wrapper.querySelector('.custom-select__dropdown');
         if (dropdown) {
             var li = document.createElement('li');
@@ -86,7 +123,6 @@
             });
             dropdown.appendChild(li);
         }
-
         if (span) span.textContent = text;
     }
 
@@ -99,7 +135,59 @@
     });
 
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeModal();
+        if (e.key === 'Escape') {
+            if (newDeptRow.style.display !== 'none') {
+                hideNewDeptRow();
+            } else {
+                closeModal();
+            }
+        }
+    });
+
+    if (btnAddDept) btnAddDept.addEventListener('click', showNewDeptRow);
+    if (btnDeptCancel) btnDeptCancel.addEventListener('click', hideNewDeptRow);
+
+    if (btnDeptSave) btnDeptSave.addEventListener('click', function () {
+        var name = newDeptName.value.trim();
+        if (!name) {
+            deptError.textContent = 'Введите название отдела.';
+            deptError.style.display = 'block';
+            newDeptName.focus();
+            return;
+        }
+
+        btnDeptSave.disabled = true;
+
+        var fd = new FormData();
+        fd.append('name', name);
+        fd.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        fetch('{% url "department_create" %}', {
+            method: 'POST',
+            body: fd,
+            credentials: 'same-origin',
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.error) {
+                deptError.textContent = data.error;
+                deptError.style.display = 'block';
+            } else {
+                setSelectValue(deptSelect, String(data.pk), data.name);
+                hideNewDeptRow();
+            }
+        })
+        .catch(function () {
+            deptError.textContent = 'Ошибка соединения с сервером.';
+            deptError.style.display = 'block';
+        })
+        .finally(function () {
+            btnDeptSave.disabled = false;
+        });
+    });
+
+    newDeptName.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); btnDeptSave.click(); }
     });
 
     if (btnSave) btnSave.addEventListener('click', function () {
