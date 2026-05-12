@@ -1,0 +1,136 @@
+{% extends 'services/base.html' %}
+{% block title %}Новый сотрудник{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div class="page-header__main">
+        <h1 class="page-title">Новый сотрудник</h1>
+    </div>
+    <a class="button button--outline" href="{% url 'employee_list' %}">← Назад</a>
+</section>
+
+{% if error %}
+<div class="form-error">{{ error }}</div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" class="edit-form" autocomplete="off">
+    {% csrf_token %}
+
+    <div class="edit-grid">
+
+        <div class="edit-panel">
+            <h2 class="edit-panel__title">Фото</h2>
+            <div class="photo-upload">
+                <img id="photo-preview" class="photo-upload__preview" src="https://via.placeholder.com/460x520/0b0f1a/ffffff?text=Нет+фото" alt="Фото">
+                <label class="photo-upload__label">
+                    <input class="photo-upload__input" type="file" name="photo" accept="image/*" id="photo-input">
+                    <span class="button button--outline" style="width:100%;justify-content:center;">Выбрать фото</span>
+                </label>
+                <p class="edit-note" style="text-align:center;margin-top:6px;">JPEG, PNG — до 10 МБ</p>
+            </div>
+        </div>
+
+        <div class="edit-panel">
+            <h2 class="edit-panel__title">Учётная запись</h2>
+            <label class="input-label">
+                <span class="input-label__text">Логин <span style="color:#ff5c8a">*</span></span>
+                <input class="input" type="text" name="username" value="{{ post.username|default:'' }}" required>
+            </label>
+            <label class="input-label">
+                <span class="input-label__text">Пароль <span style="color:#ff5c8a">*</span></span>
+                <input class="input" type="password" name="password" required>
+            </label>
+        </div>
+
+        <div class="edit-panel">
+            <h2 class="edit-panel__title">Основные данные</h2>
+            <label class="input-label">
+                <span class="input-label__text">Фамилия <span style="color:#ff5c8a">*</span></span>
+                <input class="input" type="text" name="last_name" value="{{ post.last_name|default:'' }}" required>
+            </label>
+            <label class="input-label">
+                <span class="input-label__text">Имя <span style="color:#ff5c8a">*</span></span>
+                <input class="input" type="text" name="first_name" value="{{ post.first_name|default:'' }}" required>
+            </label>
+            <label class="input-label">
+                <span class="input-label__text">Отчество</span>
+                <input class="input" type="text" name="middle_name" value="{{ post.middle_name|default:'' }}">
+            </label>
+            <label class="input-label">
+                <span class="input-label__text">Дата найма <span style="color:#ff5c8a">*</span></span>
+                <input class="input" type="date" name="hire_date" value="{{ post.hire_date|default:'' }}" required>
+            </label>
+            <label class="input-label">
+                <span class="input-label__text">Статус</span>
+                <select class="input" name="status">
+                    <option value="active" {% if post.status == 'active' or not post %}selected{% endif %}>Активен</option>
+                    <option value="fired" {% if post.status == 'fired' %}selected{% endif %}>Уволен</option>
+                    <option value="blocked" {% if post.status == 'blocked' %}selected{% endif %}>Заблокирован</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="edit-panel">
+            <h2 class="edit-panel__title">Должность</h2>
+            <label class="input-label">
+                <span class="input-label__text">Должность</span>
+                <select class="input" name="position">
+                    <option value="">— Не выбрана —</option>
+                    {% for position in positions %}
+                    <option value="{{ position.pk }}" {% if post.position == position.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ position.name }}{% if position.department %} ({{ position.department }}){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+
+        <div class="edit-panel">
+            <h2 class="edit-panel__title">Карточка сотрудника</h2>
+            <label class="input-label">
+                <span class="input-label__text">Серия паспорта</span>
+                <input class="input" type="text" name="passport_series" value="{{ post.passport_series|default:'' }}">
+            </label>
+            <label class="input-label">
+                <span class="input-label__text">Номер паспорта</span>
+                <input class="input" type="text" name="passport_number" value="{{ post.passport_number|default:'' }}">
+            </label>
+            <label class="input-label">
+                <span class="input-label__text">Гражданство</span>
+                <input class="input" type="text" name="citizenship" value="{{ post.citizenship|default:'' }}">
+            </label>
+            <label class="input-label">
+                <span class="input-label__text">Адрес прописки</span>
+                <input class="input" type="text" name="address" value="{{ post.address|default:'' }}">
+            </label>
+            <label class="input-label">
+                <span class="input-label__text">СНИЛС</span>
+                <input class="input" type="text" name="snils" value="{{ post.snils|default:'' }}">
+            </label>
+            <label class="input-label">
+                <span class="input-label__text">ИНН</span>
+                <input class="input" type="text" name="inn" value="{{ post.inn|default:'' }}">
+            </label>
+        </div>
+
+    </div>
+
+    <div class="form-actions">
+        <button class="button button--primary" type="submit">Создать сотрудника</button>
+    </div>
+</form>
+
+<script>
+document.getElementById('photo-input').addEventListener('change', function () {
+    var file = this.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        document.getElementById('photo-preview').src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+</script>
+
+{% endblock %}

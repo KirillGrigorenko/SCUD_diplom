@@ -947,6 +947,40 @@ select.input {
     gap: 12px;
 }
 
+.form-error {
+    margin-bottom: 18px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: rgba(255, 92, 138, 0.12);
+    border: 1px solid rgba(255, 92, 138, 0.3);
+    color: rgba(255, 92, 138, 0.95);
+    font-size: 14px;
+}
+
+.photo-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.photo-upload__preview {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.photo-upload__label {
+    display: block;
+    cursor: pointer;
+}
+
+.photo-upload__input {
+    display: none;
+}
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */

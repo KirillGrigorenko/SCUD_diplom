@@ -7,6 +7,9 @@
     <div class="page-header__main">
         <h1 class="page-title">Сотрудники</h1>
         <p class="page-subtitle">Обзор текущих сотрудников и их статусов.</p>
+        {% if request.user.administrator %}
+        <a class="button button--primary" href="{% url 'employee_create' %}" style="margin-top:12px;width:fit-content;">+ Добавить сотрудника</a>
+        {% endif %}
     </div>
 
     <div class="page-stats">

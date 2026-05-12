@@ -10,10 +10,27 @@
     <a class="button button--outline" href="{% url 'employee_detail' employee.id %}">← Назад</a>
 </section>
 
-<form method="post" class="edit-form" autocomplete="off">
+{% if error %}
+<div class="form-error">{{ error }}</div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" class="edit-form" autocomplete="off">
     {% csrf_token %}
 
     <div class="edit-grid">
+
+        <div class="edit-panel">
+            <h2 class="edit-panel__title">Фото</h2>
+            <div class="photo-upload">
+                <img id="photo-preview" class="photo-upload__preview" src="{{ photo_url }}" alt="Фото сотрудника">
+                <label class="photo-upload__label">
+                    <input class="photo-upload__input" type="file" name="photo" accept="image/*" id="photo-input">
+                    <span class="button button--outline" style="width:100%;justify-content:center;">Выбрать фото</span>
+                </label>
+                <p class="edit-note" style="text-align:center;margin-top:6px;">JPEG, PNG — до 10 МБ</p>
+            </div>
+        </div>
+
         <div class="edit-panel">
             <h2 class="edit-panel__title">Основные данные</h2>
             <label class="input-label">
@@ -70,15 +87,23 @@
             </label>
         </div>
 
-        <div class="edit-panel">
-            <h2 class="edit-panel__title">Биометрия</h2>
-            <p class="edit-note">🔒 Добавление биометрии будет доступно через API.</p>
-        </div>
     </div>
 
     <div class="form-actions">
         <button class="button button--primary" type="submit">Сохранить</button>
     </div>
 </form>
+
+<script>
+document.getElementById('photo-input').addEventListener('change', function () {
+    var file = this.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        document.getElementById('photo-preview').src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+</script>
 
 {% endblock %}
