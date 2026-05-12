@@ -57,7 +57,7 @@ class MeAPIView(APIView):
 
     def get(self, request):
         user = request.user
-        is_admin = hasattr(user, 'administrator')
+        is_admin = hasattr(user, 'administrator') or user.is_staff or user.is_superuser
         employee_id = user.employee.id if hasattr(user, 'employee') else None
         return Response({
             'id': user.id,
