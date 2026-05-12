@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
-from .models import Department, Employee, EmployeeCard, Position
+from .models import AccessHistory, Department, Employee, EmployeeCard, Position
 from .serializers import EmployeeSerializer
 
 
@@ -238,4 +238,28 @@ class DepartmentListAPIView(APIView):
     def get(self, request):
         departments = Department.objects.all()
         data = [{'pk': d.pk, 'name': d.name} for d in departments]
+        return Response(data)
+
+
+class EmployeeHistoryAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        employee = get_object_or_404(Employee, pk=pk)
+        user = request.user
+        if not hasattr(user, 'administrator'):
+            if not (hasattr(user, 'employee') and user.employee.id == pk):
+                return Response({'error': 'Нет доступа'}, status=403)
+
+        history = AccessHistory.objects.filter(employee=employee).order_by('-datetime')[:100]
+        data = [
+            {
+                'id': h.id,
+                'datetime': h.datetime.isoformat(),
+                'access_point': h.access_point,
+                'result': h.result,
+                'method': h.method,
+            }
+            for h in history
+        ]
         return Response(data)

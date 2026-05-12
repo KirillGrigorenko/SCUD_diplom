@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { getEmployee, getMe, logout } from '../../../../utils/api';
+import { getEmployee, getHistory, getMe, logout } from '../../../../utils/api';
 import StatusPill from '../../../../components/StatusPill';
 
 export default function EmployeeDetailPage() {
@@ -12,6 +12,7 @@ export default function EmployeeDetailPage() {
   const id = Array.isArray(rawId) ? rawId[0] : rawId;
 
   const [employee, setEmployee] = useState<any | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,10 +20,11 @@ export default function EmployeeDetailPage() {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    Promise.all([getEmployee(id), getMe()])
-      .then(([emp, me]) => {
+    Promise.all([getEmployee(id), getMe(), getHistory(id)])
+      .then(([emp, me, hist]) => {
         if (emp) setEmployee(emp);
         if (me) setIsAdmin(me.is_admin);
+        setHistory(hist);
       })
       .catch(() => setError('Не удалось загрузить данные сотрудника.'))
       .finally(() => setLoading(false));
@@ -127,7 +129,42 @@ export default function EmployeeDetailPage() {
                 </>
               )}
             </section>
-          </div>
+          {history.length > 0 && (
+            <section className="rounded-[2rem] border border-slate-700 bg-slate-950/70 p-6 shadow-xl shadow-slate-950/20 lg:col-span-2">
+              <h2 className="mb-5 text-xl font-semibold text-white">История проходов</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-700 text-left text-xs uppercase tracking-wider text-slate-400">
+                      <th className="pb-3 pr-4">Дата и время</th>
+                      <th className="pb-3 pr-4">Точка доступа</th>
+                      <th className="pb-3 pr-4">Метод</th>
+                      <th className="pb-3">Результат</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {history.map((h) => (
+                      <tr key={h.id} className="text-slate-300">
+                        <td className="py-3 pr-4 text-slate-400">{new Date(h.datetime).toLocaleString('ru-RU')}</td>
+                        <td className="py-3 pr-4">{h.access_point}</td>
+                        <td className="py-3 pr-4 capitalize">{h.method === 'biometric' ? 'Биометрия' : 'Пароль'}</td>
+                        <td className="py-3">
+                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            h.result === 'allowed'
+                              ? 'bg-emerald-500/15 text-emerald-400'
+                              : 'bg-rose-500/15 text-rose-400'
+                          }`}>
+                            {h.result === 'allowed' ? 'Разрешён' : 'Запрещён'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+        </div>
         ) : (
           <div className="rounded-[2rem] border border-slate-700 bg-slate-950/70 p-10 text-center text-slate-300">
             Сотрудник не найден.

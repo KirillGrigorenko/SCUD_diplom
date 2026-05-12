@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { login } from '../../utils/api';
+import { login, getMe } from '../../utils/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,7 +21,12 @@ export default function LoginPage() {
     setLoading(false);
 
     if (result.success) {
-      router.push('/employees');
+      const me = await getMe();
+      if (me && !me.is_admin && me.employee_id) {
+        router.push(`/employees/${me.employee_id}`);
+      } else {
+        router.push('/employees');
+      }
     } else {
       setError(result.message ?? 'Неверный логин или пароль');
     }

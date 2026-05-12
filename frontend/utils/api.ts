@@ -82,6 +82,13 @@ export async function createEmployee(formData: FormData): Promise<{ data?: any; 
   return { data: json };
 }
 
+export async function getHistory(id: string): Promise<any[]> {
+  const response = await fetch(`${API}/employees/${id}/history/`, { credentials: 'include' });
+  if (response.status === 401) { handleUnauthorized(); return []; }
+  if (!response.ok) return [];
+  return response.json();
+}
+
 export async function getPositions(): Promise<any[]> {
   const response = await fetch(`${API}/positions/`, { credentials: 'include' });
   if (!response.ok) return [];

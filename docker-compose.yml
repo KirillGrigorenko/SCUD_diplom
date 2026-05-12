@@ -57,6 +57,18 @@ services:
       - "6379:6379"
     command: ["redis-server", "--save", "", "--appendonly", "no"]
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - INTERNAL_API_URL=http://web:8000
+      - NEXT_PUBLIC_API_BASE_URL=/api
+    depends_on:
+      - web
+
 volumes:
   postgres_data:
   minio_data:

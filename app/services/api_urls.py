@@ -4,6 +4,7 @@ from .api import (
     LoginAPIView, LogoutAPIView, MeAPIView,
     EmployeeListAPIView, EmployeeDetailAPIView,
     EmployeeCreateAPIView, EmployeeUpdateAPIView,
+    EmployeeHistoryAPIView,
     PositionListAPIView, DepartmentListAPIView,
 )
 
@@ -15,6 +16,7 @@ urlpatterns = [
     path('employees/create/', EmployeeCreateAPIView.as_view(), name='api_employee_create'),
     path('employees/<int:pk>/', EmployeeDetailAPIView.as_view(), name='api_employee_detail'),
     path('employees/<int:pk>/update/', EmployeeUpdateAPIView.as_view(), name='api_employee_update'),
+    path('employees/<int:pk>/history/', EmployeeHistoryAPIView.as_view(), name='api_employee_history'),
     path('positions/', PositionListAPIView.as_view(), name='api_positions'),
     path('departments/', DepartmentListAPIView.as_view(), name='api_departments'),
 ]
