@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { getEmployee, getHistory, getMe, logout } from '../../../../utils/api';
+import { getEmployee, getHistory, getMe } from '../../../../utils/api';
 import StatusPill from '../../../../components/StatusPill';
 
 export default function EmployeeDetailPage() {
@@ -49,21 +49,6 @@ export default function EmployeeDetailPage() {
                 Редактировать
               </Link>
             )}
-            {isAdmin && (
-              <Link
-                href="/employees"
-                className="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-slate-500"
-              >
-                Назад к списку
-              </Link>
-            )}
-            <button
-              type="button"
-              onClick={() => logout()}
-              className="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-slate-500"
-            >
-              Выйти
-            </button>
           </div>
         </div>
 

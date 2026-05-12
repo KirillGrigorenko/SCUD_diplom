@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { getAllHistory, logout } from '../../../utils/api';
+import { getAllHistory } from '../../../utils/api';
 
 const METHOD_LABELS: Record<string, string> = {
   biometric: 'Биометрия',
@@ -54,21 +54,7 @@ export default function HistoryPage() {
             <h1 className="mt-3 text-3xl font-semibold text-white">История всех проходов</h1>
             <p className="mt-2 text-slate-400">Журнал событий контроля доступа.</p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/employees"
-              className="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-slate-100 hover:border-slate-500 transition"
-            >
-              ← Сотрудники
-            </Link>
-            <button
-              type="button"
-              onClick={() => logout()}
-              className="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-slate-100 hover:border-slate-500 transition"
-            >
-              Выйти
-            </button>
-          </div>
+          <div />
         </header>
 
         {/* Stats */}

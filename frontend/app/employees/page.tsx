@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { getEmployees, getMe, logout } from '../../../utils/api';
+import { getEmployees, getMe } from '../../../utils/api';
 import EmployeeCard from '../../../components/EmployeeCard';
 import CustomSelect from '../../../components/CustomSelect';
 
@@ -66,32 +66,15 @@ export default function EmployeesPage() {
             <h1 className="mt-3 text-3xl font-semibold text-white">Обзор сотрудников</h1>
             <p className="mt-2 text-slate-400">Список всех сотрудников и их статусов.</p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            {isAdmin && (
-              <>
-                <Link
-                  href="/history"
-                  className="inline-flex items-center gap-2 rounded-2xl border border-slate-600 bg-slate-800/60 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-slate-400"
-                >
-                  История проходов
-                </Link>
-                <Link
-                  href="/employees/new"
-                  className="inline-flex items-center gap-2 rounded-2xl border border-sky-600 bg-sky-600/10 px-4 py-3 text-sm font-semibold text-sky-300 transition hover:bg-sky-600 hover:text-white"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  Новый сотрудник
-                </Link>
-              </>
-            )}
-            <button
-              type="button"
-              onClick={() => logout()}
-              className="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-slate-500"
+          {isAdmin && (
+            <Link
+              href="/employees/new"
+              className="inline-flex items-center gap-2 rounded-2xl border border-sky-600 bg-sky-600/10 px-4 py-3 text-sm font-semibold text-sky-300 transition hover:bg-sky-600 hover:text-white"
             >
-              Выйти
-            </button>
-          </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Новый сотрудник
+            </Link>
+          )}
         </header>
 
         {/* Stats */}
