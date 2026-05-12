@@ -23,7 +23,7 @@ export default function Topbar() {
 
   const navLinks = [
     { href: '/employees', label: 'Сотрудники' },
-    ...(isAdmin ? [{ href: '/history', label: 'История' }] : []),
+    { href: '/history', label: 'История' },
   ];
 
   return (
