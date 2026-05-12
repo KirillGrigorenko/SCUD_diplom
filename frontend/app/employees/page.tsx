@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { getEmployees, logout } from '../../../utils/api';
+import Link from 'next/link';
+import { getEmployees, getMe, logout } from '../../../utils/api';
 import EmployeeCard from '../../../components/EmployeeCard';
 import CustomSelect from '../../../components/CustomSelect';
 
@@ -14,6 +15,7 @@ const STATUS_OPTIONS = [
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<any[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [query, setQuery] = useState('');
   const [department, setDepartment] = useState('');
   const [status, setStatus] = useState('');
@@ -22,17 +24,14 @@ export default function EmployeesPage() {
 
   useEffect(() => {
     setLoading(true);
-    getEmployees()
-      .then((data) => {
+    Promise.all([getEmployees(), getMe()])
+      .then(([data, me]) => {
         setEmployees(data);
+        if (me) setIsAdmin(me.is_admin);
         setError('');
       })
-      .catch(() => {
-        setError('Не удалось загрузить список сотрудников.');
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      .catch(() => setError('Не удалось загрузить список сотрудников.'))
+      .finally(() => setLoading(false));
   }, []);
 
   const filteredEmployees = useMemo(() => {
@@ -49,24 +48,55 @@ export default function EmployeesPage() {
     });
   }, [employees, query, department, status]);
 
+  const stats = useMemo(() => ({
+    total: employees.length,
+    active: employees.filter(e => e.status === 'active').length,
+    blocked: employees.filter(e => e.status === 'blocked').length,
+    fired: employees.filter(e => e.status === 'fired').length,
+  }), [employees]);
+
   return (
     <main className="min-h-screen bg-background text-slate-100">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+
+        {/* Header */}
         <header className="mb-8 flex flex-col gap-4 rounded-[2rem] border border-slate-700 bg-slate-950/70 p-8 shadow-2xl shadow-slate-950/30 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-sky-400">Сотрудники</p>
             <h1 className="mt-3 text-3xl font-semibold text-white">Обзор сотрудников</h1>
             <p className="mt-2 text-slate-400">Список всех сотрудников и их статусов.</p>
           </div>
-          <button
-            type="button"
-            onClick={() => logout()}
-            className="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-slate-500"
-          >
-            Выйти
-          </button>
+          <div className="flex flex-wrap gap-3">
+            {isAdmin && (
+              <Link
+                href="/employees/new"
+                className="inline-flex items-center gap-2 rounded-2xl border border-sky-600 bg-sky-600/10 px-4 py-3 text-sm font-semibold text-sky-300 transition hover:bg-sky-600 hover:text-white"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Новый сотрудник
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => logout()}
+              className="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-slate-500"
+            >
+              Выйти
+            </button>
+          </div>
         </header>
 
+        {/* Stats */}
+        {!loading && !error && (
+          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <StatCard label="Всего" value={stats.total} />
+            <StatCard label="Активных" value={stats.active} color="text-emerald-400" />
+            <StatCard label="Заблокированных" value={stats.blocked} color="text-yellow-400" />
+            <StatCard label="Уволенных" value={stats.fired} color="text-rose-400" />
+          </div>
+        )}
+
+        {/* Filters */}
         <section className="mb-8 space-y-4 rounded-[2rem] border border-slate-700 bg-slate-950/70 p-6 shadow-xl shadow-slate-950/20">
           <div className="grid items-end gap-4 sm:grid-cols-3">
             <div className="flex flex-col">
@@ -74,7 +104,7 @@ export default function EmployeesPage() {
               <input
                 className="w-full rounded-2xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-slate-100 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(e) => setQuery(e.target.value)}
                 placeholder="Например, Иванов"
               />
             </div>
@@ -83,21 +113,18 @@ export default function EmployeesPage() {
               <input
                 className="w-full rounded-2xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-slate-100 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                 value={department}
-                onChange={(event) => setDepartment(event.target.value)}
+                onChange={(e) => setDepartment(e.target.value)}
                 placeholder="Например, IT"
               />
             </div>
             <div className="flex flex-col">
               <span className="mb-2 text-sm text-slate-300">Статус</span>
-              <CustomSelect
-                value={status}
-                onChange={setStatus}
-                options={STATUS_OPTIONS}
-              />
+              <CustomSelect value={status} onChange={setStatus} options={STATUS_OPTIONS} />
             </div>
           </div>
         </section>
 
+        {/* List */}
         {loading ? (
           <div className="rounded-[2rem] border border-slate-700 bg-slate-950/70 p-10 text-center text-slate-300">Загрузка сотрудников…</div>
         ) : error ? (
@@ -113,5 +140,14 @@ export default function EmployeesPage() {
         )}
       </div>
     </main>
+  );
+}
+
+function StatCard({ label, value, color = 'text-white' }: { label: string; value: number; color?: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-700 bg-slate-950/70 p-5">
+      <p className="text-xs text-slate-400">{label}</p>
+      <p className={`mt-1 text-2xl font-semibold ${color}`}>{value}</p>
+    </div>
   );
 }

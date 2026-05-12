@@ -36,37 +36,60 @@ export async function logout() {
   }
 }
 
+export async function getMe(): Promise<{ id: number; username: string; is_admin: boolean; employee_id: number | null } | null> {
+  const response = await fetch(`${API}/auth/me/`, { credentials: 'include' });
+  if (response.status === 401) { handleUnauthorized(); return null; }
+  if (!response.ok) return null;
+  return response.json();
+}
+
 export async function getEmployees(): Promise<any[]> {
-  const response = await fetch(`${API}/employees/`, {
-    credentials: 'include',
-  });
-
-  if (response.status === 401) {
-    handleUnauthorized();
-    return [];
-  }
-
-  if (!response.ok) {
-    throw new Error('Не удалось получить сотрудников');
-  }
-
+  const response = await fetch(`${API}/employees/`, { credentials: 'include' });
+  if (response.status === 401) { handleUnauthorized(); return []; }
+  if (!response.ok) throw new Error('Не удалось получить сотрудников');
   return response.json();
 }
 
 export async function getEmployee(id: string | string[]): Promise<any> {
   const resolvedId = Array.isArray(id) ? id[0] : id;
-  const response = await fetch(`${API}/employees/${resolvedId}/`, {
+  const response = await fetch(`${API}/employees/${resolvedId}/`, { credentials: 'include' });
+  if (response.status === 401) { handleUnauthorized(); return null; }
+  if (!response.ok) throw new Error('Не удалось получить данные сотрудника');
+  return response.json();
+}
+
+export async function updateEmployee(id: string, formData: FormData): Promise<{ data?: any; error?: string }> {
+  const response = await fetch(`${API}/employees/${id}/update/`, {
+    method: 'PATCH',
     credentials: 'include',
+    body: formData,
   });
+  if (response.status === 401) { handleUnauthorized(); return { error: 'Не авторизован' }; }
+  const json = await response.json().catch(() => null);
+  if (!response.ok) return { error: json?.error ?? 'Ошибка сохранения' };
+  return { data: json };
+}
 
-  if (response.status === 401) {
-    handleUnauthorized();
-    return null;
-  }
+export async function createEmployee(formData: FormData): Promise<{ data?: any; error?: string }> {
+  const response = await fetch(`${API}/employees/create/`, {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  });
+  if (response.status === 401) { handleUnauthorized(); return { error: 'Не авторизован' }; }
+  const json = await response.json().catch(() => null);
+  if (!response.ok) return { error: json?.error ?? 'Ошибка создания' };
+  return { data: json };
+}
 
-  if (!response.ok) {
-    throw new Error('Не удалось получить данные сотрудника');
-  }
+export async function getPositions(): Promise<any[]> {
+  const response = await fetch(`${API}/positions/`, { credentials: 'include' });
+  if (!response.ok) return [];
+  return response.json();
+}
 
+export async function getDepartments(): Promise<any[]> {
+  const response = await fetch(`${API}/departments/`, { credentials: 'include' });
+  if (!response.ok) return [];
   return response.json();
 }

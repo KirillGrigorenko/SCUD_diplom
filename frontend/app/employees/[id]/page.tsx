@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { getEmployee, logout } from '../../../../utils/api';
+import { getEmployee, getMe, logout } from '../../../../utils/api';
 import StatusPill from '../../../../components/StatusPill';
 
 export default function EmployeeDetailPage() {
@@ -12,26 +12,20 @@ export default function EmployeeDetailPage() {
   const id = Array.isArray(rawId) ? rawId[0] : rawId;
 
   const [employee, setEmployee] = useState<any | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (!id) return;
-
     setLoading(true);
-    getEmployee(id)
-      .then((data) => {
-        if (data) {
-          setEmployee(data);
-          setError('');
-        }
+    Promise.all([getEmployee(id), getMe()])
+      .then(([emp, me]) => {
+        if (emp) setEmployee(emp);
+        if (me) setIsAdmin(me.is_admin);
       })
-      .catch(() => {
-        setError('Не удалось загрузить данные сотрудника.');
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      .catch(() => setError('Не удалось загрузить данные сотрудника.'))
+      .finally(() => setLoading(false));
   }, [id]);
 
   if (!id) return null;
@@ -45,6 +39,14 @@ export default function EmployeeDetailPage() {
             <h1 className="mt-3 text-3xl font-semibold text-white">Карточка сотрудника</h1>
           </div>
           <div className="flex flex-wrap gap-3">
+            {isAdmin && employee && (
+              <Link
+                href={`/employees/${id}/edit`}
+                className="inline-flex items-center rounded-2xl border border-sky-600 bg-sky-600/10 px-4 py-3 text-sm font-semibold text-sky-300 transition hover:bg-sky-600 hover:text-white"
+              >
+                Редактировать
+              </Link>
+            )}
             <Link
               href="/employees"
               className="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-slate-500"
@@ -89,34 +91,12 @@ export default function EmployeeDetailPage() {
             <section className="rounded-[2rem] border border-slate-700 bg-slate-950/70 p-6 shadow-xl shadow-slate-950/20">
               <h2 className="text-xl font-semibold text-white">Основная информация</h2>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-3xl bg-slate-900/80 p-5">
-                  <p className="text-sm text-slate-400">Фамилия</p>
-                  <p className="mt-2 text-base font-medium text-white">{employee.last_name}</p>
-                </div>
-                <div className="rounded-3xl bg-slate-900/80 p-5">
-                  <p className="text-sm text-slate-400">Имя</p>
-                  <p className="mt-2 text-base font-medium text-white">{employee.first_name}</p>
-                </div>
-                <div className="rounded-3xl bg-slate-900/80 p-5">
-                  <p className="text-sm text-slate-400">Отчество</p>
-                  <p className="mt-2 text-base font-medium text-white">{employee.middle_name || '—'}</p>
-                </div>
-                <div className="rounded-3xl bg-slate-900/80 p-5">
-                  <p className="text-sm text-slate-400">Статус</p>
-                  <p className="mt-2 text-base font-medium text-white">{employee.status}</p>
-                </div>
-                {employee.position && (
-                  <div className="rounded-3xl bg-slate-900/80 p-5">
-                    <p className="text-sm text-slate-400">Должность</p>
-                    <p className="mt-2 text-base font-medium text-white">{employee.position}</p>
-                  </div>
-                )}
-                {employee.department && (
-                  <div className="rounded-3xl bg-slate-900/80 p-5">
-                    <p className="text-sm text-slate-400">Отдел</p>
-                    <p className="mt-2 text-base font-medium text-white">{employee.department}</p>
-                  </div>
-                )}
+                <InfoCard label="Фамилия" value={employee.last_name} />
+                <InfoCard label="Имя" value={employee.first_name} />
+                <InfoCard label="Отчество" value={employee.middle_name || '—'} />
+                <InfoCard label="Статус" value={employee.status} />
+                {employee.position && <InfoCard label="Должность" value={employee.position} />}
+                {employee.department && <InfoCard label="Отдел" value={employee.department} />}
               </div>
 
               {employee.employee_card && (
@@ -124,24 +104,22 @@ export default function EmployeeDetailPage() {
                   <h2 className="mt-8 text-xl font-semibold text-white">Паспортные данные</h2>
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     {employee.employee_card.passport_series && (
-                      <div className="rounded-3xl bg-slate-900/80 p-5">
-                        <p className="text-sm text-slate-400">Серия и номер паспорта</p>
-                        <p className="mt-2 text-base font-medium text-white">
-                          {employee.employee_card.passport_series} {employee.employee_card.passport_number}
-                        </p>
-                      </div>
+                      <InfoCard
+                        label="Серия и номер паспорта"
+                        value={`${employee.employee_card.passport_series} ${employee.employee_card.passport_number}`}
+                      />
                     )}
-                    {employee.employee_card.phone && (
-                      <div className="rounded-3xl bg-slate-900/80 p-5">
-                        <p className="text-sm text-slate-400">Телефон</p>
-                        <p className="mt-2 text-base font-medium text-white">{employee.employee_card.phone}</p>
-                      </div>
+                    {employee.employee_card.citizenship && (
+                      <InfoCard label="Гражданство" value={employee.employee_card.citizenship} />
+                    )}
+                    {employee.employee_card.snils && (
+                      <InfoCard label="СНИЛС" value={employee.employee_card.snils} />
+                    )}
+                    {employee.employee_card.inn && (
+                      <InfoCard label="ИНН" value={employee.employee_card.inn} />
                     )}
                     {employee.employee_card.address && (
-                      <div className="col-span-full rounded-3xl bg-slate-900/80 p-5">
-                        <p className="text-sm text-slate-400">Адрес</p>
-                        <p className="mt-2 text-base font-medium text-white">{employee.employee_card.address}</p>
-                      </div>
+                      <InfoCard label="Адрес" value={employee.employee_card.address} full />
                     )}
                   </div>
                 </>
@@ -155,5 +133,14 @@ export default function EmployeeDetailPage() {
         )}
       </div>
     </main>
+  );
+}
+
+function InfoCard({ label, value, full }: { label: string; value: string; full?: boolean }) {
+  return (
+    <div className={`rounded-3xl bg-slate-900/80 p-5${full ? ' col-span-full' : ''}`}>
+      <p className="text-sm text-slate-400">{label}</p>
+      <p className="mt-2 text-base font-medium text-white">{value}</p>
+    </div>
   );
 }
