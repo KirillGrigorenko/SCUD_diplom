@@ -16,6 +16,7 @@ services:
     depends_on:
       - db
       - minio
+      - redis
 
   db:
     image: postgres:15
@@ -49,6 +50,12 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
     volumes:
       - minio_data:/data
+
+  redis:
+    image: redis:7.2
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
 
 volumes:
   postgres_data:

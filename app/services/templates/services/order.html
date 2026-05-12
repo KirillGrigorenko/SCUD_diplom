@@ -3,33 +3,35 @@
 
 {% block content %}
 
-<div class="order">
-
-    <div class="order__header">
-        <h1>Заявка #{{ order.id }}</h1>
-        <p class="order__client">👤 {{ order.client }}</p>
-        <p class="order__date">📅 {{ order.created }}</p>
-        <p class="order__total">Итого: <strong>{{ total }} ₽</strong></p>
-    </div>
-
-    <div class="order__services">
-        {% for os in order_services %}
-        <div class="order-card">
-            <img class="order-card__img" src="{{ os.service.image_url }}" alt="{{ os.service.name }}">
-            <div class="order-card__info">
-                <p class="order-card__name">{{ os.service.name }}</p>
-                <p class="order-card__price">{{ os.service.price }} ₽</p>
-                <p class="order-card__date">{{ os.service.date }}</p>
-            </div>
-            <div class="order-card__mm">
-                <p>Кол-во: <strong>{{ os.quantity }}</strong></p>
-                <p>Главная: <strong>{% if os.is_main %}Да{% else %}Нет{% endif %}</strong></p>
-                <p>Комментарий: <strong>{{ os.comment|default:"—" }}</strong></p>
-            </div>
+<section class="order-page">
+    <header class="order-header">
+        <div class="order-title">
+            <h1>Заявка №{{ order.id }}</h1>
+            <p class="order-subtitle">Детали заявки и список услуг</p>
         </div>
+
+        <div class="order-meta">
+            <span class="order-meta__item">👤 {{ order.client }}</span>
+            <span class="order-meta__item">📅 {{ order.created }}</span>
+            <span class="order-meta__item order-meta__total">Итого: <strong>{{ total }} ₽</strong></span>
+        </div>
+    </header>
+
+    <div class="order-services">
+        {% for os in order_services %}
+        <article class="order-card">
+            <div class="order-card__media">
+                <img class="order-card__img" src="{{ os.service.image_url }}" alt="{{ os.service.name }}">
+            </div>
+            <div class="order-card__body">
+                <h3 class="order-card__name">{{ os.service.name }}</h3>
+                <p class="order-card__info">Цена: <strong>{{ os.service.price }} ₽</strong> · Дата: {{ os.service.date }}</p>
+                <p class="order-card__info">Кол-во: <strong>{{ os.quantity }}</strong> · Главная: <strong>{% if os.is_main %}Да{% else %}Нет{% endif %}</strong></p>
+                <p class="order-card__info">Комментарий: <strong>{{ os.comment|default:"—" }}</strong></p>
+            </div>
+        </article>
         {% endfor %}
     </div>
-
-</div>
+</section>
 
 {% endblock %}

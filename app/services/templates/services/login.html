@@ -3,42 +3,40 @@
 
 {% block content %}
 
-<div class="login-wrapper">
-    <div class="login-card">
-        <h1 class="login-card__title">Вход в систему</h1>
-        <p class="login-card__subtitle">СКУД — Система контроля доступа</p>
+<div class="auth-screen">
+    <div class="auth-card">
+        <div class="auth-card__header">
+            <h1 class="auth-card__title">Добро пожаловать</h1>
+            <p class="auth-card__subtitle">Войдите, чтобы продолжить работу со системой</p>
+        </div>
 
         {% if form.errors %}
-        <div class="login-card__error">
-            Неверный логин или пароль
+        <div class="auth-card__alert">
+            <strong>Ошибка:</strong> неверный логин или пароль
         </div>
         {% endif %}
 
-        <form method="post">
+        <form class="auth-form" method="post" autocomplete="off">
             {% csrf_token %}
-            <div class="form-group">
-                <label for="username">Логин</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    class="form-group__input"
-                    placeholder="Введите логин"
-                    autofocus
-                >
-            </div>
-            <div class="form-group">
-                <label for="password">Пароль</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    class="form-group__input"
-                    placeholder="Введите пароль"
-                >
-            </div>
-            <button type="submit" class="login-card__btn">Войти</button>
+            <label class="input-label">
+                <span class="input-label__text">Логин</span>
+                <input class="input" type="text" id="username" name="username" placeholder="Введите логин" autofocus>
+            </label>
+
+            <label class="input-label">
+                <span class="input-label__text">Пароль</span>
+                <input class="input" type="password" id="password" name="password" placeholder="Введите пароль">
+            </label>
+
+            <label class="input-label input-label--checkbox">
+                <input type="checkbox" name="remember_me" id="remember-me" {% if remember %}checked{% endif %}>
+                <span class="input-label__text">Запомнить меня</span>
+            </label>
+
+            <button type="submit" class="button button--primary">Войти</button>
         </form>
+
+        <p class="auth-card__foot">Используйте учетные данные из вашей организации.</p>
     </div>
 </div>
 
