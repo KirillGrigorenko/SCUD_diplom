@@ -1,9 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.db.models import Q
 from django.contrib.auth.models import User
-from .models import Employee, Administrator, AccessHistory, EmployeeCard, Position
+from .models import Employee, Administrator, AccessHistory, EmployeeCard, Position, Department
 from django.conf import settings
 from minio import Minio
 import io
@@ -192,6 +193,14 @@ def employee_edit(request, pk):
         card.address = request.POST.get('address', '')
         card.snils = request.POST.get('snils', '')
         card.inn = request.POST.get('inn', '')
+        position_id = request.POST.get('position', '').strip()
+        if position_id:
+            try:
+                card.position = Position.objects.get(pk=position_id)
+            except Position.DoesNotExist:
+                card.position = None
+        else:
+            card.position = None
         card.save()
 
         if not error:
@@ -201,6 +210,8 @@ def employee_edit(request, pk):
         'employee': employee,
         'card': getattr(employee, 'employeecard', None),
         'photo_url': get_minio_url(employee.photo),
+        'positions': Position.objects.select_related('department').all(),
+        'departments': Department.objects.all(),
         'error': error,
     })
 
@@ -211,6 +222,7 @@ def employee_create(request):
         return redirect('employee_list')
 
     positions = Position.objects.select_related('department').all()
+    departments = Department.objects.all()
     error = None
 
     if request.method == 'POST':
@@ -275,6 +287,35 @@ def employee_create(request):
 
     return render(request, 'services/employee_create.html', {
         'positions': positions,
+        'departments': departments,
         'error': error,
         'post': request.POST,
     })
+
+
+@login_required(login_url='login')
+def position_create(request):
+    if not hasattr(request.user, 'administrator'):
+        return JsonResponse({'error': 'Нет доступа'}, status=403)
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
+
+    name = request.POST.get('name', '').strip()
+    if not name:
+        return JsonResponse({'error': 'Название обязательно'}, status=400)
+
+    position = Position(name=name)
+    dept_id = request.POST.get('department', '').strip()
+    if dept_id:
+        try:
+            position.department = Department.objects.get(pk=dept_id)
+        except Department.DoesNotExist:
+            pass
+    position.save()
+
+    label = position.name
+    if position.department:
+        label += f' · {position.department.name}'
+
+    return JsonResponse({'pk': position.pk, 'label': label})

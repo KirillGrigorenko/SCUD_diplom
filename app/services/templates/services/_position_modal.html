@@ -1,0 +1,147 @@
+<div class="modal-backdrop" id="position-modal" style="display:none">
+    <div class="modal">
+        <div class="modal__header">
+            <h2 class="modal__title">Новая должность</h2>
+            <button type="button" class="modal__close" id="modal-close">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="modal__body">
+            <div id="modal-error" class="form-error" style="display:none"></div>
+            <label class="input-label">
+                <span class="input-label__text">Название <span style="color:var(--danger)">*</span></span>
+                <input class="input" type="text" id="modal-pos-name" placeholder="Например, Разработчик">
+            </label>
+            <label class="input-label" style="margin-top:12px">
+                <span class="input-label__text">Отдел</span>
+                <select class="input" id="modal-pos-dept">
+                    <option value="">— Не выбран —</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.pk }}">{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+        <div class="modal__footer">
+            <button type="button" class="button button--outline" id="modal-cancel">Отмена</button>
+            <button type="button" class="button button--primary" id="modal-save">Создать</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var modal   = document.getElementById('position-modal');
+    var btnOpen = document.getElementById('btn-add-position');
+    var btnClose = document.getElementById('modal-close');
+    var btnCancel = document.getElementById('modal-cancel');
+    var btnSave = document.getElementById('modal-save');
+    var nameInput = document.getElementById('modal-pos-name');
+    var deptSelect = document.getElementById('modal-pos-dept');
+    var errorBox = document.getElementById('modal-error');
+    var positionSelect = document.getElementById('f-position');
+
+    function openModal() {
+        nameInput.value = '';
+        deptSelect.value = '';
+        errorBox.style.display = 'none';
+        modal.style.display = 'flex';
+        setTimeout(function () { nameInput.focus(); }, 50);
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    function setSelectValue(select, value, text) {
+        var opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = text;
+        select.appendChild(opt);
+        select.value = value;
+
+        var wrapper = select.closest('.custom-select');
+        if (!wrapper) return;
+        var span = wrapper.querySelector('.custom-select__trigger span');
+
+        // Rebuild dropdown options list
+        var dropdown = wrapper.querySelector('.custom-select__dropdown');
+        if (dropdown) {
+            var li = document.createElement('li');
+            li.className = 'custom-select__option custom-select__option--selected';
+            li.dataset.value = value;
+            li.textContent = text;
+            li.addEventListener('mousedown', function (e) { e.preventDefault(); });
+            li.addEventListener('click', function () {
+                select.value = value;
+                if (span) span.textContent = text;
+                dropdown.querySelectorAll('.custom-select__option').forEach(function (el) {
+                    el.classList.remove('custom-select__option--selected');
+                });
+                li.classList.add('custom-select__option--selected');
+                wrapper.classList.remove('custom-select--open');
+            });
+            dropdown.querySelectorAll('.custom-select__option').forEach(function (el) {
+                el.classList.remove('custom-select__option--selected');
+            });
+            dropdown.appendChild(li);
+        }
+
+        if (span) span.textContent = text;
+    }
+
+    if (btnOpen) btnOpen.addEventListener('click', openModal);
+    if (btnClose) btnClose.addEventListener('click', closeModal);
+    if (btnCancel) btnCancel.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeModal();
+    });
+
+    if (btnSave) btnSave.addEventListener('click', function () {
+        var name = nameInput.value.trim();
+        if (!name) {
+            errorBox.textContent = 'Введите название должности.';
+            errorBox.style.display = 'block';
+            nameInput.focus();
+            return;
+        }
+
+        btnSave.disabled = true;
+        btnSave.textContent = 'Сохранение…';
+
+        var formData = new FormData();
+        formData.append('name', name);
+        formData.append('department', deptSelect.value);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        fetch('{% url "position_create" %}', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.error) {
+                errorBox.textContent = data.error;
+                errorBox.style.display = 'block';
+            } else {
+                setSelectValue(positionSelect, String(data.pk), data.label);
+                closeModal();
+            }
+        })
+        .catch(function () {
+            errorBox.textContent = 'Ошибка соединения с сервером.';
+            errorBox.style.display = 'block';
+        })
+        .finally(function () {
+            btnSave.disabled = false;
+            btnSave.textContent = 'Создать';
+        });
+    });
+}());
+</script>

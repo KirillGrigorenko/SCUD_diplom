@@ -65,6 +65,28 @@
             </div>
 
             <div class="edit-section">
+                <h2 class="edit-section__title">Должность</h2>
+                <div class="edit-fields">
+                    <label class="input-label edit-fields__full">
+                        <span class="input-label__text">Должность</span>
+                        <div class="input-with-add">
+                            <select class="input" id="f-position" name="position">
+                                <option value="">— Не выбрана —</option>
+                                {% for position in positions %}
+                                <option value="{{ position.pk }}" {% if card and card.position_id == position.pk %}selected{% endif %}>
+                                    {{ position.name }}{% if position.department %} · {{ position.department }}{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <button type="button" id="btn-add-position" class="btn-add" title="Добавить должность">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            </button>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="edit-section">
                 <h2 class="edit-section__title">Паспортные данные</h2>
                 <div class="edit-fields">
                     <label class="input-label">
@@ -102,6 +124,8 @@
         </div>
     </div>
 </form>
+
+{% include 'services/_position_modal.html' %}
 
 <script>
 document.getElementById('photo-input').addEventListener('change', function () {
