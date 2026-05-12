@@ -8,7 +8,13 @@
         <p class="edit-header__sub">Создание</p>
         <h1 class="edit-header__title">Новый сотрудник</h1>
     </div>
-    <a class="button button--outline" href="{% url 'employee_list' %}">← Назад</a>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button type="button" id="btn-random" class="button button--secondary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+            Случайные данные
+        </button>
+        <a class="button button--outline" href="{% url 'employee_list' %}">← Назад</a>
+    </div>
 </div>
 
 {% if error %}
@@ -39,11 +45,11 @@
                 <div class="edit-fields">
                     <label class="input-label">
                         <span class="input-label__text">Логин <span style="color:var(--danger)">*</span></span>
-                        <input class="input" type="text" name="username" value="{{ post.username|default:'' }}" required>
+                        <input class="input" id="f-username" type="text" name="username" value="{{ post.username|default:'' }}" required>
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">Пароль <span style="color:var(--danger)">*</span></span>
-                        <input class="input" type="password" name="password" required>
+                        <input class="input" id="f-password" type="text" name="password" required>
                     </label>
                 </div>
             </div>
@@ -53,23 +59,23 @@
                 <div class="edit-fields">
                     <label class="input-label">
                         <span class="input-label__text">Фамилия <span style="color:var(--danger)">*</span></span>
-                        <input class="input" type="text" name="last_name" value="{{ post.last_name|default:'' }}" required>
+                        <input class="input" id="f-last-name" type="text" name="last_name" value="{{ post.last_name|default:'' }}" required>
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">Имя <span style="color:var(--danger)">*</span></span>
-                        <input class="input" type="text" name="first_name" value="{{ post.first_name|default:'' }}" required>
+                        <input class="input" id="f-first-name" type="text" name="first_name" value="{{ post.first_name|default:'' }}" required>
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">Отчество</span>
-                        <input class="input" type="text" name="middle_name" value="{{ post.middle_name|default:'' }}">
+                        <input class="input" id="f-middle-name" type="text" name="middle_name" value="{{ post.middle_name|default:'' }}">
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">Дата найма <span style="color:var(--danger)">*</span></span>
-                        <input class="input" type="date" name="hire_date" value="{{ post.hire_date|default:'' }}" required>
+                        <input class="input" id="f-hire-date" type="date" name="hire_date" value="{{ post.hire_date|default:'' }}" required>
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">Статус</span>
-                        <select class="input" name="status">
+                        <select class="input" id="f-status" name="status">
                             <option value="active" {% if not post or post.status == 'active' %}selected{% endif %}>Активен</option>
                             <option value="fired" {% if post.status == 'fired' %}selected{% endif %}>Уволен</option>
                             <option value="blocked" {% if post.status == 'blocked' %}selected{% endif %}>Заблокирован</option>
@@ -77,7 +83,7 @@
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">Должность</span>
-                        <select class="input" name="position">
+                        <select class="input" id="f-position" name="position">
                             <option value="">— Не выбрана —</option>
                             {% for position in positions %}
                             <option value="{{ position.pk }}" {% if post.position == position.pk|stringformat:"s" %}selected{% endif %}>
@@ -94,27 +100,27 @@
                 <div class="edit-fields">
                     <label class="input-label">
                         <span class="input-label__text">Серия паспорта</span>
-                        <input class="input" type="text" name="passport_series" value="{{ post.passport_series|default:'' }}">
+                        <input class="input" id="f-passport-series" type="text" name="passport_series" value="{{ post.passport_series|default:'' }}">
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">Номер паспорта</span>
-                        <input class="input" type="text" name="passport_number" value="{{ post.passport_number|default:'' }}">
+                        <input class="input" id="f-passport-number" type="text" name="passport_number" value="{{ post.passport_number|default:'' }}">
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">Гражданство</span>
-                        <input class="input" type="text" name="citizenship" value="{{ post.citizenship|default:'' }}">
+                        <input class="input" id="f-citizenship" type="text" name="citizenship" value="{{ post.citizenship|default:'' }}">
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">СНИЛС</span>
-                        <input class="input" type="text" name="snils" value="{{ post.snils|default:'' }}">
+                        <input class="input" id="f-snils" type="text" name="snils" value="{{ post.snils|default:'' }}">
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">ИНН</span>
-                        <input class="input" type="text" name="inn" value="{{ post.inn|default:'' }}">
+                        <input class="input" id="f-inn" type="text" name="inn" value="{{ post.inn|default:'' }}">
                     </label>
                     <label class="input-label edit-fields__full">
                         <span class="input-label__text">Адрес прописки</span>
-                        <input class="input" type="text" name="address" value="{{ post.address|default:'' }}">
+                        <input class="input" id="f-address" type="text" name="address" value="{{ post.address|default:'' }}">
                     </label>
                 </div>
             </div>
@@ -133,11 +139,88 @@ document.getElementById('photo-input').addEventListener('change', function () {
     var file = this.files[0];
     if (!file) return;
     var reader = new FileReader();
-    reader.onload = function (e) {
-        document.getElementById('photo-preview').src = e.target.result;
-    };
+    reader.onload = function (e) { document.getElementById('photo-preview').src = e.target.result; };
     reader.readAsDataURL(file);
 });
+
+(function () {
+    var lastNames = ['Иванов','Смирнов','Кузнецов','Попов','Васильев','Петров','Соколов','Михайлов','Новиков','Федоров','Морозов','Волков','Алексеев','Лебедев','Семенов','Егоров','Павлов','Козлов','Степанов','Николаев','Орлов','Андреев','Макаров','Никитин','Захаров','Зайцев','Соловьев','Борисов','Яковлев','Григорьев'];
+    var firstNames = ['Александр','Сергей','Дмитрий','Андрей','Алексей','Максим','Евгений','Иван','Михаил','Артем','Николай','Владимир','Кирилл','Павел','Роман','Олег','Виктор','Илья','Денис','Антон'];
+    var middleNames = ['Александрович','Сергеевич','Дмитриевич','Андреевич','Алексеевич','Максимович','Евгеньевич','Иванович','Михайлович','Артемович','Николаевич','Владимирович','Кириллович','Павлович','Романович'];
+    var cities = ['Москва','Санкт-Петербург','Новосибирск','Екатеринбург','Казань','Нижний Новгород','Самара','Омск','Ростов-на-Дону','Уфа','Красноярск','Воронеж','Пермь','Волгоград','Краснодар'];
+    var streets = ['Ленина','Пушкина','Гагарина','Мира','Советская','Кирова','Садовая','Молодёжная','Центральная','Комсомольская','Победы','Лесная','Новая','Школьная','Полевая'];
+    var statuses = ['active','active','active','blocked','fired'];
+
+    function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function rndInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function pad(n, len) { return String(n).padStart(len, '0'); }
+
+    function randDigits(n) {
+        var s = '';
+        for (var i = 0; i < n; i++) s += rndInt(0, 9);
+        return s;
+    }
+
+    function randDate() {
+        var y = rndInt(2015, 2024);
+        var m = pad(rndInt(1, 12), 2);
+        var d = pad(rndInt(1, 28), 2);
+        return y + '-' + m + '-' + d;
+    }
+
+    function randSnils() {
+        var a = randDigits(3), b = randDigits(3), c = randDigits(3), d = randDigits(2);
+        return a + '-' + b + '-' + c + ' ' + d;
+    }
+
+    function setSelect(id, value) {
+        var select = document.getElementById(id);
+        if (!select) return;
+        select.value = value;
+        var wrapper = select.closest('.custom-select');
+        if (!wrapper) return;
+        var span = wrapper.querySelector('.custom-select__trigger span');
+        var options = wrapper.querySelectorAll('.custom-select__option');
+        options.forEach(function (li) {
+            var isMatch = li.dataset.value === value;
+            li.classList.toggle('custom-select__option--selected', isMatch);
+            if (isMatch && span) span.textContent = li.textContent.trim();
+        });
+    }
+
+    document.getElementById('btn-random').addEventListener('click', function () {
+        var lastName  = rnd(lastNames);
+        var firstName = rnd(firstNames);
+        var middle    = rnd(middleNames);
+        var login     = (lastName + firstName[0]).toLowerCase().replace(/ё/g,'e') + rndInt(10, 99);
+        var password  = 'Pass' + randDigits(4) + '!';
+        var city      = rnd(cities);
+        var street    = rnd(streets);
+        var status    = rnd(statuses);
+
+        document.getElementById('f-username').value        = login;
+        document.getElementById('f-password').value        = password;
+        document.getElementById('f-last-name').value       = lastName;
+        document.getElementById('f-first-name').value      = firstName;
+        document.getElementById('f-middle-name').value     = middle;
+        document.getElementById('f-hire-date').value       = randDate();
+        document.getElementById('f-passport-series').value = randDigits(4);
+        document.getElementById('f-passport-number').value = randDigits(6);
+        document.getElementById('f-citizenship').value     = 'Россия';
+        document.getElementById('f-snils').value           = randSnils();
+        document.getElementById('f-inn').value             = randDigits(12);
+        document.getElementById('f-address').value         = 'г. ' + city + ', ул. ' + street + ', д. ' + rndInt(1,120) + ', кв. ' + rndInt(1,200);
+
+        setSelect('f-status', status);
+
+        // Выбрать случайную должность если есть варианты
+        var posSelect = document.getElementById('f-position');
+        if (posSelect && posSelect.options.length > 1) {
+            var idx = rndInt(1, posSelect.options.length - 1);
+            setSelect('f-position', posSelect.options[idx].value);
+        }
+    });
+}());
 </script>
 
 {% endblock %}
