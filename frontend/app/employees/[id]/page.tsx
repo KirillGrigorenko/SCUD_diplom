@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { getEmployee, getHistory, getMe } from '../../../../utils/api';
-import StatusPill from '../../../../components/StatusPill';
+import { getEmployee, getHistory, getMe } from '@/utils/api';
+import StatusPill from '@/components/StatusPill';
 
 export default function EmployeeDetailPage() {
   const params = useParams();

@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getEmployee, getPositions, updateEmployee, getBiometricStatus, registerBiometric } from '../../../../../utils/api';
-import FaceCapture, { CameraSource } from '../../../../../components/FaceCapture';
+import { getEmployee, getPositions, updateEmployee, getBiometricStatus, registerBiometric } from '@/utils/api';
+import FaceCapture, { CameraSource } from '@/components/FaceCapture';
 
 const COUNTRIES = [
   'Россия','Беларусь','Казахстан','Украина','Узбекистан','Таджикистан','Кыргызстан',

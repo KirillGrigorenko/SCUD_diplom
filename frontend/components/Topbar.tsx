@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getMe, logout } from '../utils/api';
+import { getMe, logout } from '@/utils/api';
 
 type Me = { username: string; is_admin: boolean; employee_id: number | null };
 

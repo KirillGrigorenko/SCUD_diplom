@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getPositions, createEmployee } from '../../../../utils/api';
+import { getPositions, createEmployee } from '@/utils/api';
 
 const COUNTRIES = [
   'Россия','Беларусь','Казахстан','Украина','Узбекистан','Таджикистан','Кыргызстан',

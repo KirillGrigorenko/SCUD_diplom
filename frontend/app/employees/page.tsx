@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { getEmployees, getMe } from '../../../utils/api';
-import EmployeeCard from '../../../components/EmployeeCard';
-import CustomSelect from '../../../components/CustomSelect';
+import { getEmployees, getMe } from '@/utils/api';
+import EmployeeCard from '@/components/EmployeeCard';
+import CustomSelect from '@/components/CustomSelect';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Все статусы' },

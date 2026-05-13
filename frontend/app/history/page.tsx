@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { getAllHistory } from '../../../utils/api';
+import { getAllHistory } from '@/utils/api';
 
 const METHOD_LABELS: Record<string, string> = {
   biometric: 'Биометрия',

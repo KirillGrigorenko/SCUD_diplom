@@ -2,8 +2,8 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { login, loginWithFace, getMe } from '../../utils/api';
-import FaceCapture, { CameraSource } from '../../components/FaceCapture';
+import { login, loginWithFace, getMe } from '@/utils/api';
+import FaceCapture, { CameraSource } from '@/components/FaceCapture';
 
 type Tab = 'password' | 'face';
 

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import TopbarWrapper from '../components/TopbarWrapper';
+import TopbarWrapper from '@/components/TopbarWrapper';
 
 export const metadata: Metadata = {
   title: 'СКУД',
