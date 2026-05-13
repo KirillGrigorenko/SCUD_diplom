@@ -1,0 +1,281 @@
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f0f4f8;
+    color: #1a1a1a;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header {
+    background: #1a202c;
+    padding: 16px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header__inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header__title {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.header__back {
+    color: #90cdf4;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+.main {
+    max-width: 900px;
+    margin: 32px auto;
+    padding: 0 24px;
+}
+
+/* ============================================================
+   FORM PAGE
+   ============================================================ */
+.card-form {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.form-title {
+    font-size: 24px;
+    color: #1a202c;
+    margin-bottom: 8px;
+}
+
+.form-subtitle {
+    color: #718096;
+    font-size: 14px;
+    margin-bottom: 28px;
+}
+
+.form-section {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.form-section h2 {
+    font-size: 16px;
+    color: #2d3748;
+    margin-bottom: 6px;
+}
+
+.section-note {
+    font-size: 12px;
+    color: #a0aec0;
+    margin-bottom: 16px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    color: #4a5568;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.2s;
+    background: #fff;
+}
+
+.form-input:focus { border-color: #4299e1; }
+
+.form-range {
+    width: 100%;
+    margin: 8px 0;
+    accent-color: #4299e1;
+}
+
+.range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #718096;
+    margin-top: 4px;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: #2b6cb0;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+}
+
+.btn-submit:hover { background: #2c5282; }
+
+/* ============================================================
+   RESULT PAGE
+   ============================================================ */
+.section-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.section-card h2 {
+    font-size: 16px;
+    color: #2d3748;
+    margin-bottom: 16px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-label {
+    font-size: 12px;
+    color: #718096;
+}
+
+.info-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.data-table { display: flex; flex-direction: column; gap: 8px; }
+
+.data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f7fafc;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #e2e8f0;
+    color: #2d3748;
+}
+
+.badge-active { background: #c6f6d5; color: #276749; }
+.badge-blocked { background: #fed7d7; color: #9b2c2c; }
+.badge-fired { background: #feebc8; color: #7b341e; }
+
+/* ============================================================
+   RULES CHAIN
+   ============================================================ */
+.rules-chain { display: flex; flex-direction: column; gap: 12px; }
+
+.rule-item {
+    border-radius: 10px;
+    padding: 14px 16px;
+    border-left: 4px solid;
+}
+
+.rule-allowed { background: #f0fff4; border-color: #38a169; }
+.rule-warning { background: #fffbeb; border-color: #d69e2e; }
+.rule-denied  { background: #fff5f5; border-color: #e53e3e; }
+
+.rule-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.rule-id { font-size: 12px; color: #718096; }
+
+.rule-name { font-weight: 600; font-size: 14px; flex: 1; }
+
+.rule-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.rule-badge-allowed { background: #c6f6d5; color: #276749; }
+.rule-badge-warning { background: #fefcbf; color: #744210; }
+.rule-badge-denied  { background: #fed7d7; color: #9b2c2c; }
+
+.rule-explanation { font-size: 13px; color: #4a5568; }
+
+/* ============================================================
+   FINAL RESULT
+   ============================================================ */
+.result-card {
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.result-allowed { background: #f0fff4; border: 2px solid #38a169; }
+.result-warning { background: #fffbeb; border: 2px solid #d69e2e; }
+.result-denied  { background: #fff5f5; border: 2px solid #e53e3e; }
+
+.result-icon { font-size: 48px; margin-bottom: 12px; }
+
+.result-message {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.result-allowed .result-message { color: #276749; }
+.result-warning .result-message { color: #744210; }
+.result-denied  .result-message { color: #9b2c2c; }
+
+.result-rule { font-size: 14px; color: #718096; }
+
+.empty { color: #a0aec0; font-size: 14px; }

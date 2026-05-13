@@ -1,0 +1,429 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>МЭС СКУД — Результат верификации</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:        #0a0c0f;
+            --surface:   #111418;
+            --surface2:  #181c22;
+            --border:    #222830;
+            --border2:   #2e3540;
+            --accent:    #00d4ff;
+            --text:      #e2e8f0;
+            --text-dim:  #64748b;
+            --text-mid:  #94a3b8;
+            --green:     #22c55e;
+            --yellow:    #f59e0b;
+            --red:       #ef4444;
+            --mono:      'JetBrains Mono', monospace;
+            --sans:      'Syne', sans-serif;
+        }
+
+        html { font-size: 15px; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header-logo {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+        .header-back {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+            transition: color 0.15s;
+        }
+        .header-back:hover { color: var(--accent); }
+        .status-dot {
+            display: inline-block; width: 6px; height: 6px;
+            border-radius: 50%; background: var(--green);
+            margin-right: 6px; animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+        main {
+            flex: 1;
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2.5rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+        @media (max-width: 768px) { main { grid-template-columns: 1fr; } }
+
+        /* ── VERDICT BLOCK ── */
+        .verdict-wrap {
+            grid-column: 1 / -1;
+        }
+        .verdict {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            align-items: stretch;
+            overflow: hidden;
+        }
+        .verdict-bar {
+            width: 6px;
+            flex-shrink: 0;
+        }
+        .verdict-bar.allowed { background: var(--green); }
+        .verdict-bar.warning { background: var(--yellow); }
+        .verdict-bar.denied  { background: var(--red); }
+
+        .verdict-inner {
+            padding: 1.5rem 2rem;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+        .verdict-left {}
+        .verdict-tag {
+            font-family: var(--mono);
+            font-size: 0.62rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 0.4rem;
+        }
+        .verdict-decision {
+            font-family: var(--mono);
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+        .verdict-decision.allowed { color: var(--green); }
+        .verdict-decision.warning { color: var(--yellow); }
+        .verdict-decision.denied  { color: var(--red); }
+
+        .verdict-message {
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-mid);
+        }
+        .verdict-right {
+            text-align: right;
+        }
+        .rule-badge {
+            font-family: var(--mono);
+            font-size: 0.62rem;
+            color: var(--text-dim);
+            letter-spacing: 0.08em;
+        }
+        .rule-id {
+            font-family: var(--mono);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+            margin-top: 0.25rem;
+        }
+        .rule-name {
+            font-family: var(--mono);
+            font-size: 0.68rem;
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+        }
+
+        /* ── PANEL ── */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+        .panel-header {
+            padding: 0.9rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .panel-num {
+            font-family: var(--mono); font-size: 0.65rem;
+            color: var(--accent);
+            background: rgba(0,212,255,0.08);
+            border: 1px solid rgba(0,212,255,0.2);
+            padding: 2px 8px; letter-spacing: 0.1em;
+        }
+        .panel-title {
+            font-size: 0.78rem; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--text-mid);
+        }
+        .panel-body { padding: 1.25rem 1.5rem; }
+
+        /* ── PARAMS TABLE ── */
+        .params-table { width: 100%; border-collapse: collapse; }
+        .params-table tr { border-bottom: 1px solid var(--border); }
+        .params-table tr:last-child { border-bottom: none; }
+        .params-table td {
+            padding: 0.55rem 0;
+            font-family: var(--mono);
+            font-size: 0.72rem;
+        }
+        .params-table td:first-child { color: var(--text-dim); width: 40%; }
+        .params-table td:last-child  { color: var(--text); text-align: right; }
+        .param-key { color: var(--accent); margin-right: 6px; }
+
+        .val-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 0.65rem;
+            letter-spacing: 0.05em;
+        }
+        .val-allowed { background: rgba(34,197,94,0.1); color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
+        .val-warning { background: rgba(245,158,11,0.1); color: var(--yellow); border: 1px solid rgba(245,158,11,0.25); }
+        .val-denied  { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+        .val-yes     { background: rgba(34,197,94,0.1); color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
+        .val-no      { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+
+        /* ── EXPLANATION ── */
+        .explanation-box {
+            background: var(--bg);
+            border: 1px solid var(--border2);
+            padding: 0.9rem 1rem;
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            color: var(--text-mid);
+            line-height: 1.6;
+        }
+
+        /* ── CHAIN ── */
+        .chain-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .chain-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.8rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+        .chain-item.final {
+            border-color: var(--accent);
+            background: rgba(0,212,255,0.04);
+        }
+        .chain-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .chain-dot.allowed { background: var(--green); }
+        .chain-dot.warning { background: var(--yellow); }
+        .chain-dot.denied  { background: var(--red); }
+
+        .chain-info { flex: 1; }
+        .chain-name {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            color: var(--text);
+        }
+        .chain-group {
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            margin-top: 1px;
+        }
+        .chain-result {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .chain-result.allowed { color: var(--green); }
+        .chain-result.warning { color: var(--yellow); }
+        .chain-result.denied  { color: var(--red); }
+        .chain-id {
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--text-dim);
+        }
+
+        .empty-chain {
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            padding: 1rem 0;
+        }
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer-text {
+            font-family: var(--mono);
+            font-size: 0.62rem;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-logo">
+        <span class="status-dot"></span>МЭС СКУД v2.0
+    </div>
+    <a href="{% url 'index' %}" class="header-back">← Новая проверка</a>
+</header>
+
+<main>
+
+    <!-- VERDICT — full width -->
+    <div class="verdict-wrap">
+        <div class="verdict">
+            <div class="verdict-bar {{ result.decision }}"></div>
+            <div class="verdict-inner">
+                <div class="verdict-left">
+                    <div class="verdict-tag">Решение МЭС / Y1</div>
+                    <div class="verdict-decision {{ result.decision }}">
+                        {% if result.decision == "allowed" %}ДОСТУП РАЗРЕШЁН
+                        {% elif result.decision == "warning" %}ТРЕБУЕТ ПОДТВЕРЖДЕНИЯ
+                        {% else %}ДОСТУП ЗАПРЕЩЁН
+                        {% endif %}
+                    </div>
+                    <div class="verdict-message">{{ result.message }}</div>
+                </div>
+                {% if result.rule %}
+                <div class="verdict-right">
+                    <div class="rule-badge">ПРАВИЛО</div>
+                    <div class="rule-id">#{{ result.rule.id }}</div>
+                    <div class="rule-name">{{ result.rule.name }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- LEFT: параметры + пояснение -->
+    <div style="display:flex; flex-direction:column; gap:1.5rem;">
+
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-num">ВХОД</span>
+                <span class="panel-title">Входные параметры</span>
+            </div>
+            <div class="panel-body">
+                <table class="params-table">
+                    <tr>
+                        <td><span class="param-key">X1</span>Уверенность</td>
+                        <td>{{ data.confidence }}%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-key">X2</span>Статус</td>
+                        <td>{{ data.status }}</td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-key">X3</span>Уровень доступа</td>
+                        <td>{{ data.access_level }}</td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-key">X4</span>Зона</td>
+                        <td>{{ data.zone }}</td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-key">X5</span>Рабочее время</td>
+                        <td>
+                            {% if data.is_work_time %}
+                                <span class="val-badge val-yes">ДА</span>
+                            {% else %}
+                                <span class="val-badge val-no">НЕТ</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-key">X6</span>Неудачных попыток</td>
+                        <td>{{ data.failed_attempts }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-num">ВЫВОД</span>
+                <span class="panel-title">Пояснение</span>
+            </div>
+            <div class="panel-body">
+                <div class="explanation-box">{{ result.explanation }}</div>
+                {% if result.rule %}
+                <div style="margin-top:0.75rem; font-family:var(--mono); font-size:0.62rem; color:var(--text-dim);">
+                    Группа {{ result.rule.group }} — {{ result.rule.group_name }} &nbsp;/&nbsp;
+                    Входы: {{ result.rule.inputs|join:", " }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT: цепочка вывода -->
+    <div class="panel">
+        <div class="panel-header">
+            <span class="panel-num">ЦЕПОЧКА</span>
+            <span class="panel-title">Миварный вывод</span>
+        </div>
+        <div class="panel-body">
+            {% if result.chain %}
+                <div class="chain-list">
+                    {% for item in result.chain %}
+                    <div class="chain-item {% if forloop.first %}final{% endif %}">
+                        <div class="chain-dot {{ item.result }}"></div>
+                        <div class="chain-info">
+                            <div class="chain-name">{{ item.name }}</div>
+                            <div class="chain-group">Группа {{ item.group }} — {{ item.group_name }}</div>
+                        </div>
+                        <div class="chain-result {{ item.result }}">{{ item.result|upper }}</div>
+                        <div class="chain-id">#{{ item.id }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-chain">Ни одно правило не сработало</div>
+            {% endif %}
+        </div>
+    </div>
+
+</main>
+
+<footer>
+    <span class="footer-text">МЭС СКУД — Миварная экспертная система управления доступом</span>
+    <span class="footer-text">МГТУ им. Н.Э. Баумана / ИУ5-83Б</span>
+</footer>
+
+</body>
+</html>

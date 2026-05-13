@@ -1,0 +1,517 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>МЭС СКУД — Верификация доступа</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:        #0a0c0f;
+            --surface:   #111418;
+            --surface2:  #181c22;
+            --border:    #222830;
+            --border2:   #2e3540;
+            --accent:    #00d4ff;
+            --accent2:   #0099bb;
+            --text:      #e2e8f0;
+            --text-dim:  #64748b;
+            --text-mid:  #94a3b8;
+            --green:     #22c55e;
+            --yellow:    #f59e0b;
+            --red:       #ef4444;
+            --mono:      'JetBrains Mono', monospace;
+            --sans:      'Syne', sans-serif;
+        }
+
+        html { font-size: 15px; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── HEADER ── */
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-logo {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+        .header-meta {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            margin-right: 6px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ── LAYOUT ── */
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2.5rem 2rem;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            main { grid-template-columns: 1fr; }
+        }
+
+        /* ── PANEL ── */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+        .panel-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .panel-num {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            color: var(--accent);
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 2px 8px;
+            letter-spacing: 0.1em;
+        }
+        .panel-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-mid);
+        }
+        .panel-body { padding: 1.5rem; }
+
+        /* ── FORM ── */
+        .field { margin-bottom: 1.25rem; }
+        .field:last-child { margin-bottom: 0; }
+
+        label {
+            display: block;
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 0.4rem;
+        }
+        .param-tag {
+            color: var(--accent);
+            margin-right: 4px;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border2);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            padding: 0.6rem 0.8rem;
+            outline: none;
+            appearance: none;
+            transition: border-color 0.15s;
+        }
+        select:focus, input[type="number"]:focus {
+            border-color: var(--accent);
+        }
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.8rem center;
+            padding-right: 2.5rem;
+            cursor: pointer;
+        }
+
+        /* range */
+        .range-wrap { position: relative; }
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 2px;
+            background: var(--border2);
+            outline: none;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px; height: 14px;
+            background: var(--accent);
+            border-radius: 0;
+            cursor: pointer;
+        }
+        .range-val {
+            position: absolute;
+            right: 0;
+            top: -1.5rem;
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            color: var(--accent);
+        }
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.4rem;
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--text-dim);
+        }
+        .range-labels span.warn { color: var(--yellow); }
+        .range-labels span.ok   { color: var(--green); }
+
+        /* checkbox */
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.8rem;
+            background: var(--bg);
+            border: 1px solid var(--border2);
+            cursor: pointer;
+            user-select: none;
+        }
+        .checkbox-row input[type="checkbox"] {
+            width: 14px; height: 14px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .checkbox-label {
+            font-family: var(--mono);
+            font-size: 0.82rem;
+            color: var(--text);
+        }
+
+        /* ── SUBMIT ── */
+        button[type="submit"] {
+            width: 100%;
+            margin-top: 1.5rem;
+            padding: 0.85rem;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+        button[type="submit"]:hover { background: #33ddff; }
+        button[type="submit"]:active { transform: scale(0.99); }
+
+        /* ── INFO PANEL (right) ── */
+        .info-section { margin-bottom: 1.5rem; }
+        .info-section:last-child { margin-bottom: 0; }
+        .info-section-title {
+            font-family: var(--mono);
+            font-size: 0.62rem;
+            color: var(--text-dim);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .rule-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .rule-group:last-child { border-bottom: none; }
+        .rg-num {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            color: var(--accent);
+            min-width: 20px;
+        }
+        .rg-info {}
+        .rg-name {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+        .rg-desc {
+            font-family: var(--mono);
+            font-size: 0.63rem;
+            color: var(--text-dim);
+            line-height: 1.4;
+        }
+        .rg-count {
+            margin-left: auto;
+            font-family: var(--mono);
+            font-size: 0.62rem;
+            color: var(--text-dim);
+            white-space: nowrap;
+        }
+
+        .zone-table { width: 100%; border-collapse: collapse; }
+        .zone-table th, .zone-table td {
+            font-family: var(--mono);
+            font-size: 0.68rem;
+            padding: 0.45rem 0.6rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .zone-table th { color: var(--text-dim); font-weight: 400; }
+        .zone-table td { color: var(--text); }
+        .zone-table td .badge {
+            display: inline-block;
+            padding: 1px 6px;
+            font-size: 0.6rem;
+            letter-spacing: 0.05em;
+        }
+        .badge-high   { background: rgba(34,197,94,0.12); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+        .badge-medium { background: rgba(245,158,11,0.12); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+        .badge-low    { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+
+        /* footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer-text {
+            font-family: var(--mono);
+            font-size: 0.62rem;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-logo">
+        <span class="status-dot"></span>МЭС СКУД v2.0
+    </div>
+    <div class="header-meta">МИВАРНАЯ ЭКСПЕРТНАЯ СИСТЕМА / 32 ПРАВИЛА / 5 ГРУПП</div>
+</header>
+
+<main>
+    <!-- LEFT: форма -->
+    <div class="panel">
+        <div class="panel-header">
+            <span class="panel-num">ВВОД</span>
+            <span class="panel-title">Параметры запроса доступа</span>
+        </div>
+        <div class="panel-body">
+            <form method="post" action="{% url 'analyze' %}">
+                {% csrf_token %}
+
+                <div class="field">
+                    <label><span class="param-tag">X1</span> Уверенность нейросети</label>
+                    <div class="range-wrap">
+                        <span class="range-val" id="conf-display">85%</span>
+                        <input type="range" name="confidence" min="0" max="100" value="85"
+                               oninput="document.getElementById('conf-display').textContent = this.value + '%'">
+                    </div>
+                    <div class="range-labels">
+                        <span>0</span>
+                        <span class="warn">50 — warning</span>
+                        <span class="ok">80 — allowed</span>
+                        <span>100</span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label><span class="param-tag">X2</span> Статус учётной записи</label>
+                    <select name="status">
+                        <option value="active">active — активен</option>
+                        <option value="blocked">blocked — заблокирован</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label><span class="param-tag">X3</span> Уровень доступа</label>
+                    <select name="access_level">
+                        <option value="high">high — высокий</option>
+                        <option value="medium">medium — средний</option>
+                        <option value="low">low — низкий</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label><span class="param-tag">X4</span> Запрашиваемая зона</label>
+                    <select name="zone">
+                        <option value="main">main — главный вход</option>
+                        <option value="restricted">restricted — ограниченная зона</option>
+                        <option value="server">server — серверная комната</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label><span class="param-tag">X5</span> Рабочее время</label>
+                    <label class="checkbox-row">
+                        <input type="checkbox" name="is_work_time" checked>
+                        <span class="checkbox-label">Текущее время — рабочее</span>
+                    </label>
+                </div>
+
+                <div class="field">
+                    <label><span class="param-tag">X6</span> Неудачных попыток подряд</label>
+                    <input type="number" name="failed_attempts" value="0" min="0" max="10">
+                </div>
+
+                <button type="submit">Запустить МЭС</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- RIGHT: справка -->
+    <div class="panel">
+        <div class="panel-header">
+            <span class="panel-num">БАЗА ЗНАНИЙ</span>
+            <span class="panel-title">Структура правил</span>
+        </div>
+        <div class="panel-body">
+
+            <div class="info-section">
+                <div class="info-section-title">Группы правил</div>
+                <div class="rule-group">
+                    <div class="rg-num">Г1</div>
+                    <div class="rg-info">
+                        <div class="rg-name">Штатный доступ</div>
+                        <div class="rg-desc">X1 ≥ 80, active, рабочее время, X6 = 0</div>
+                    </div>
+                    <div class="rg-count">9 правил</div>
+                </div>
+                <div class="rule-group">
+                    <div class="rg-num">Г2</div>
+                    <div class="rg-info">
+                        <div class="rg-name">Нерабочее время</div>
+                        <div class="rg-desc">X1 ≥ 80, active, X5 = false, X6 = 0</div>
+                    </div>
+                    <div class="rg-count">9 правил</div>
+                </div>
+                <div class="rule-group">
+                    <div class="rg-num">Г3</div>
+                    <div class="rg-info">
+                        <div class="rg-name">Сомнение нейросети</div>
+                        <div class="rg-desc">50 ≤ X1 &lt; 80 или X1 &lt; 50</div>
+                    </div>
+                    <div class="rg-count">7 правил</div>
+                </div>
+                <div class="rule-group">
+                    <div class="rg-num">Г4</div>
+                    <div class="rg-info">
+                        <div class="rg-name">Блокировка аккаунта</div>
+                        <div class="rg-desc">X2 = blocked — абсолютный запрет</div>
+                    </div>
+                    <div class="rg-count">3 правила</div>
+                </div>
+                <div class="rule-group">
+                    <div class="rg-num">Г5</div>
+                    <div class="rg-info">
+                        <div class="rg-name">Защита от подбора</div>
+                        <div class="rg-desc">X6 ≥ 1 — предупреждение / блокировка</div>
+                    </div>
+                    <div class="rg-count">4 правила</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-section-title">Матрица доступа по зонам</div>
+                <table class="zone-table">
+                    <thead>
+                        <tr>
+                            <th>Уровень (X3)</th>
+                            <th>main</th>
+                            <th>restricted</th>
+                            <th>server</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge badge-high">high</span></td>
+                            <td>allowed</td>
+                            <td>allowed</td>
+                            <td>allowed</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-medium">medium</span></td>
+                            <td>allowed</td>
+                            <td>allowed</td>
+                            <td>denied</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-low">low</span></td>
+                            <td>allowed</td>
+                            <td>denied</td>
+                            <td>denied</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-section">
+                <div class="info-section-title">Приоритет обработки</div>
+                <div style="font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); line-height: 2;">
+                    <div>1. <span style="color:var(--red)">Г4</span> — Блокировка аккаунта</div>
+                    <div>2. <span style="color:var(--red)">Г5</span> — Защита от подбора</div>
+                    <div>3. <span style="color:var(--yellow)">Г3</span> — Сомнение нейросети</div>
+                    <div>4. <span style="color:var(--green)">Г1</span> — Штатный доступ</div>
+                    <div>5. <span style="color:var(--text-dim)">Г2</span> — Нерабочее время</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<footer>
+    <span class="footer-text">МЭС СКУД — Миварная экспертная система управления доступом</span>
+    <span class="footer-text">МГТУ им. Н.Э. Баумана / ИУ5-83Б</span>
+</footer>
+
+</body>
+</html>
