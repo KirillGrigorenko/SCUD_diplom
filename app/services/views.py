@@ -497,13 +497,16 @@ def history_list(request):
     if date_to:
         qs = qs.filter(datetime__date__lte=date_to)
 
+    total = qs.count()
     return render(request, 'services/history_list.html', {
         'history': qs[:500],
         'employee_q': employee_q,
         'result_f': result_f,
         'date_from': date_from,
         'date_to': date_to,
-        'total': qs.count(),
+        'total': total,
+        'allowed_count': qs.filter(result='allowed').count(),
+        'denied_count': qs.filter(result__in=['denied', 'warning']).count(),
     })
 
 

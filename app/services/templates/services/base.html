@@ -12,6 +12,57 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Flatpickr dark theme override */
+        .flatpickr-calendar {
+            background: #0f172a !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            border-radius: 14px !important;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6) !important;
+            font-family: inherit !important;
+            width: 280px !important;
+        }
+        .flatpickr-calendar.arrowTop:before,
+        .flatpickr-calendar.arrowTop:after { border-bottom-color: #0f172a !important; }
+        .flatpickr-months { padding: 12px 12px 0 !important; }
+        .flatpickr-months .flatpickr-month { background: transparent !important; }
+        .flatpickr-current-month { font-size: 14px !important; font-weight: 600 !important; color: #e2e8f0 !important; }
+        .flatpickr-current-month .flatpickr-monthDropdown-months { background: #0f172a !important; color: #e2e8f0 !important; }
+        .flatpickr-current-month input.cur-year { color: #e2e8f0 !important; font-weight: 600 !important; }
+        .flatpickr-prev-month svg, .flatpickr-next-month svg { fill: #64748b !important; }
+        .flatpickr-prev-month:hover svg, .flatpickr-next-month:hover svg { fill: #e2e8f0 !important; }
+        .flatpickr-weekdays { background: transparent !important; padding: 0 8px !important; }
+        span.flatpickr-weekday { background: transparent !important; color: #475569 !important; font-size: 11px !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: 0.07em !important; }
+        .flatpickr-days { padding: 4px 8px 10px !important; }
+        .dayContainer { gap: 2px !important; }
+        .flatpickr-day {
+            background: transparent !important;
+            border: none !important;
+            border-radius: 8px !important;
+            color: #94a3b8 !important;
+            font-size: 13px !important;
+            height: 34px !important;
+            line-height: 34px !important;
+            max-width: 34px !important;
+        }
+        .flatpickr-day:hover { background: rgba(255,255,255,0.07) !important; color: #e2e8f0 !important; }
+        .flatpickr-day.today { border: 1px solid rgba(14,165,233,0.4) !important; color: #38bdf8 !important; }
+        .flatpickr-day.today:hover { background: rgba(14,165,233,0.12) !important; }
+        .flatpickr-day.selected, .flatpickr-day.selected:hover {
+            background: #0ea5e9 !important;
+            color: #fff !important;
+            border-radius: 8px !important;
+        }
+        .flatpickr-day.flatpickr-disabled, .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay { color: #1e293b !important; }
+        .numInputWrapper span { border-color: rgba(255,255,255,0.08) !important; }
+        .numInputWrapper span:hover { background: rgba(255,255,255,0.06) !important; }
+        .numInputWrapper span svg path { fill: #64748b !important; }
+
+        /* Hide native date picker icon */
+        input[type="date"]::-webkit-calendar-picker-indicator { display: none; }
+        input[type="date"] { appearance: none; -webkit-appearance: none; }
+    </style>
 </head>
 <body>
     <div class="app">
@@ -61,8 +112,23 @@
         </footer>
     </div>
 
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/ru.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Инициализация datepicker на всех date-инпутах
+    var dateInputs = document.querySelectorAll('input[type="date"], input.fp-date');
+    dateInputs.forEach(function(el) {
+        var existing = el.value;
+        flatpickr(el, {
+            locale: 'ru',
+            dateFormat: 'Y-m-d',
+            defaultDate: existing || null,
+            allowInput: true,
+            disableMobile: true,
+        });
+    });
+
     document.querySelectorAll('select').forEach(function (select) {
         var wrapper = document.createElement('div');
         wrapper.className = 'custom-select';
