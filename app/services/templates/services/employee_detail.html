@@ -9,6 +9,7 @@
             <img class="detail-card__photo" src="{{ employee.image_url }}" alt="{{ employee.full_name }}">
             {% if request.user.administrator %}
             <a class="button button--outline detail-card__edit" href="{% url 'employee_edit' employee.id %}">✏️ Редактировать</a>
+            <button type="button" class="button button--danger detail-card__edit" style="margin-top:8px;" onclick="confirmDelete()">🗑 Удалить</button>
             {% endif %}
         </div>
 
@@ -84,5 +85,18 @@
         {% endif %}
     </section>
 </div>
+
+{% if request.user.administrator %}
+<form id="delete-form" method="post" action="{% url 'employee_delete' employee.id %}" style="display:none;">
+    {% csrf_token %}
+</form>
+<script>
+function confirmDelete() {
+    if (confirm('Удалить сотрудника {{ employee.full_name }} навсегда? Это действие нельзя отменить.')) {
+        document.getElementById('delete-form').submit();
+    }
+}
+</script>
+{% endif %}
 
 {% endblock %}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="460" height="520" viewBox="0 0 460 520">
+  <rect width="460" height="520" fill="#0b0f1a"/>
+  <!-- силуэт головы -->
+  <circle cx="230" cy="195" r="90" fill="#1e293b"/>
+  <!-- силуэт тела -->
+  <ellipse cx="230" cy="480" rx="160" ry="110" fill="#1e293b"/>
+  <!-- иконка камеры (намёк что надо сфотографировать) -->
+  <g transform="translate(195,290)" opacity="0.35">
+    <rect x="0" y="8" width="70" height="52" rx="6" fill="none" stroke="#94a3b8" stroke-width="3"/>
+    <circle cx="35" cy="34" r="13" fill="none" stroke="#94a3b8" stroke-width="3"/>
+    <rect x="22" y="0" width="26" height="12" rx="4" fill="#94a3b8"/>
+  </g>
+  <text x="230" y="390" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#475569">Нет фото</text>
+</svg>

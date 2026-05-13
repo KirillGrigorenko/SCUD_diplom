@@ -25,7 +25,7 @@ COUNTRIES = [
 
 def get_minio_url(key, ext='jpg'):
     if not key:
-        return 'https://via.placeholder.com/460x520/0b0f1a/ffffff?text=Нет+фото'
+        return '/static/img/no-photo.svg'
     public_host = getattr(settings, 'MINIO_PUBLIC_ENDPOINT', 'localhost:9000')
     return f'http://{public_host}/{settings.MINIO_BUCKET}/{key}.{ext}'
 
@@ -365,6 +365,19 @@ def position_create(request):
         label += f' · {position.department.name}'
 
     return JsonResponse({'pk': position.pk, 'label': label})
+
+
+@login_required(login_url='login')
+def employee_delete(request, pk):
+    if not hasattr(request.user, 'administrator'):
+        return redirect('employee_detail', pk=pk)
+    if request.method != 'POST':
+        return redirect('employee_detail', pk=pk)
+    employee = get_object_or_404(Employee, pk=pk)
+    user_account = employee.user
+    employee.delete()
+    user_account.delete()
+    return redirect('employee_list')
 
 
 @login_required(login_url='login')
