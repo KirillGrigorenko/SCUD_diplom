@@ -856,6 +856,22 @@ select.input {
 /* ============================================================
    DETAIL PAGE
    ============================================================ */
+.detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.detail-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
 .detail-grid {
     display: grid;
     grid-template-columns: 1.2fr 1fr;
