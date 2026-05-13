@@ -308,6 +308,7 @@ def employee_create(request):
             if face_b64:
                 try:
                     import base64 as _b64
+                    import io as _io
                     from django.utils import timezone as _tz
                     from .face_stub import get_face_hash
                     from .models import BiometricData
@@ -317,6 +318,12 @@ def employee_create(request):
                     bio.face_registered_at = _tz.now().date()
                     bio.status = True
                     bio.save()
+                    # Если отдельное фото не загружено — используем фото с биометрии
+                    if not employee.photo:
+                        key = f'employee_{employee.pk}'
+                        upload_photo(_io.BytesIO(image_bytes), key)
+                        employee.photo = key
+                        employee.save(update_fields=['photo'])
                 except Exception:
                     pass  # биометрия необязательна, сотрудник уже создан
 

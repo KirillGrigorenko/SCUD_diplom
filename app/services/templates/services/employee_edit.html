@@ -195,12 +195,17 @@ function bioRegisterEdit() {
     .then(function(res){
         if (res.ok) {
             var ok = document.getElementById('bio-msg-ok');
-            ok.textContent = 'Биометрия зарегистрирована успешно.';
+            ok.textContent = 'Биометрия зарегистрирована, фото обновлено.';
             ok.style.display = 'block';
             document.getElementById('bio-msg-err').style.display = 'none';
             btn.textContent = 'Перерегистрировать лицо';
             btn.disabled = true;
             btn.style.opacity = '.5';
+            // обновляем аватар в сайдбаре
+            if (res.body.photo_url) {
+                var preview = document.getElementById('photo-preview');
+                if (preview) preview.src = res.body.photo_url + '?t=' + Date.now();
+            }
             _bioBlob = null;
         } else {
             var err = document.getElementById('bio-msg-err');

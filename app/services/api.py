@@ -391,13 +391,31 @@ class BiometricRegisterAPIView(APIView):
         face_hash = get_face_hash(image_bytes)
 
         from django.utils import timezone
+        import io
         bio, _ = BiometricData.objects.get_or_create(employee=employee)
         bio.face_hash = face_hash
         bio.face_registered_at = timezone.now().date()
         bio.status = True
         bio.save()
 
-        return Response({'status': 'registered', 'registered_at': bio.face_registered_at.isoformat()})
+        # Загружаем фото в MinIO как аватар сотрудника
+        photo_url = None
+        try:
+            from .views import upload_photo, get_minio_url
+            image_file.seek(0)
+            key = f'employee_{employee.pk}'
+            upload_photo(image_file, key)
+            employee.photo = key
+            employee.save(update_fields=['photo'])
+            photo_url = get_minio_url(key)
+        except Exception:
+            pass  # биометрия сохранена, фото — по возможности
+
+        return Response({
+            'status': 'registered',
+            'registered_at': bio.face_registered_at.isoformat(),
+            'photo_url': photo_url,
+        })
 
 
 class BiometricStatusAPIView(APIView):
