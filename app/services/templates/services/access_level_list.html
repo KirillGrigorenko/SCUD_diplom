@@ -68,7 +68,13 @@
             </label>
             <label class="input-label">
                 <span class="input-label__text">Код <span style="color:#ef4444">*</span></span>
-                <input class="input" type="text" name="code" placeholder="high">
+                <select class="input" name="code">
+                    <option value="">— Выберите —</option>
+                    <option value="high">high — высокий (server / restricted)</option>
+                    <option value="medium">medium — средний (main + restricted)</option>
+                    <option value="low">low — низкий (только main)</option>
+                </select>
+                <span style="font-size:11px;color:#475569;margin-top:4px;display:block;">Используется МИВАР при биометрическом входе</span>
             </label>
             <label class="input-label">
                 <span class="input-label__text">Зона <span style="color:#ef4444">*</span></span>
