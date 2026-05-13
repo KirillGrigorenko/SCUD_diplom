@@ -856,22 +856,6 @@ select.input {
 /* ============================================================
    DETAIL PAGE
    ============================================================ */
-.detail-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-}
-
-.detail-header__actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-}
-
 .detail-grid {
     display: grid;
     grid-template-columns: 1.2fr 1fr;
@@ -899,11 +883,18 @@ select.input {
     position: absolute;
     top: 14px;
     right: 14px;
-    padding: 10px 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.25);
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.50);
+    color: #fff;
     font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
     transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
 
@@ -911,6 +902,19 @@ select.input {
     background: rgba(0, 0, 0, 0.75);
     border-color: rgba(255, 255, 255, 0.45);
     transform: translateY(-1px);
+}
+
+.detail-card__delete {
+    right: auto;
+    left: 14px;
+    border-color: rgba(239, 68, 68, 0.45);
+    background: rgba(30, 0, 0, 0.55);
+    color: #fca5a5;
+}
+
+.detail-card__delete:hover {
+    background: rgba(239, 68, 68, 0.30);
+    border-color: rgba(239, 68, 68, 0.7);
 }
 
 .detail-card__title {
