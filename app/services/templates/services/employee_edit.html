@@ -34,6 +34,26 @@
 
         <div class="edit-content">
 
+            <!-- УЧЁТНАЯ ЗАПИСЬ -->
+            <div class="edit-section">
+                <h2 class="edit-section__title">Учётная запись</h2>
+                <div class="edit-fields">
+                    <label class="input-label">
+                        <span class="input-label__text">Логин</span>
+                        <input class="input" type="text" name="new_username" value="{{ employee.user.username }}">
+                    </label>
+                    <div></div>
+                    <label class="input-label">
+                        <span class="input-label__text">Новый пароль <span style="font-weight:400;color:#64748b;text-transform:none;letter-spacing:0;">(пусто — не менять)</span></span>
+                        <input class="input" type="password" name="new_password" autocomplete="new-password">
+                    </label>
+                    <label class="input-label">
+                        <span class="input-label__text">Подтвердить пароль</span>
+                        <input class="input" type="password" name="new_password2" autocomplete="new-password">
+                    </label>
+                </div>
+            </div>
+
             <!-- ОСНОВНЫЕ ДАННЫЕ -->
             <div class="edit-section">
                 <h2 class="edit-section__title">Основные данные</h2>

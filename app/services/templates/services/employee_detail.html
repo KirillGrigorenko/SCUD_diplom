@@ -3,190 +3,216 @@
 
 {% block content %}
 
-<div class="detail-grid">
-    <section class="detail-card">
-        <div class="detail-card__media">
-            <img class="detail-card__photo" src="{{ employee.image_url }}" alt="{{ employee.full_name }}">
-            {% if request.user.administrator %}
-            <button type="button" class="detail-card__edit detail-card__delete" onclick="confirmDelete()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                Удалить
-            </button>
-            <a class="detail-card__edit" href="{% url 'employee_edit' employee.id %}">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                Редактировать
-            </a>
+<!-- Шапка страницы -->
+<div class="emp-detail-header">
+    <div>
+        <a href="{% url 'employee_list' %}" class="emp-detail-header__back">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Все сотрудники
+        </a>
+        <h1 style="font-size:28px;font-weight:700;letter-spacing:-0.02em;margin-bottom:12px;">{{ employee.full_name }}</h1>
+        <div class="pill-list">
+            <span class="pill {% if employee.status == 'active' %}pill--success{% elif employee.status == 'blocked' %}pill--warning{% else %}pill--danger{% endif %}">
+                {{ employee.get_status_display }}
+            </span>
+            <span class="pill">Нанят: {{ employee.hire_date }}</span>
+            {% if employee.fire_date %}
+            <span class="pill pill--danger">Уволен: {{ employee.fire_date }}</span>
             {% endif %}
         </div>
+    </div>
+    {% if request.user.administrator %}
+    <div class="emp-detail-header__actions">
+        <button type="button" class="button button--danger" onclick="confirmDelete()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Удалить
+        </button>
+        <a class="button button--outline" href="{% url 'employee_edit' employee.id %}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Редактировать
+        </a>
+    </div>
+    {% endif %}
+</div>
 
-        <div class="detail-card__info">
-            <h1 class="detail-card__title">{{ employee.full_name }}</h1>
+<!-- Фото + инфо -->
+<div class="emp-detail-layout">
 
-            <div class="pill-list">
-                <span class="pill {% if employee.status == 'active' %}pill--success{% elif employee.status == 'blocked' %}pill--warning{% else %}pill--danger{% endif %}">
-                    {{ employee.get_status_display }}
-                </span>
-                <span class="pill">Нанят: {{ employee.hire_date }}</span>
-                {% if employee.fire_date %}
-                <span class="pill pill--danger">Уволен: {{ employee.fire_date }}</span>
+    <aside class="emp-detail-photo">
+        <img src="{{ employee.image_url }}" alt="{{ employee.full_name }}">
+    </aside>
+
+    <div class="emp-detail-info">
+
+        {% if employee.employeecard %}{% with card=employee.employeecard %}
+
+        <div class="info-section">
+            <p class="info-section__title">Должность</p>
+            <div class="info-kv-grid">
+                <div class="kv">
+                    <span class="kv__key">Должность</span>
+                    <span class="kv__val">{{ card.position|default:"—" }}</span>
+                </div>
+                {% if card.position.department %}
+                <div class="kv">
+                    <span class="kv__key">Отдел</span>
+                    <span class="kv__val">{{ card.position.department }}</span>
+                </div>
                 {% endif %}
             </div>
-
-            {% if employee.employeecard %}
-            {% with card=employee.employeecard %}
-
-            <div class="detail-section">
-                <h2 class="detail-section__title">Должность</h2>
-                <div class="detail-grid__cells">
-                    <div class="detail-meta">
-                        <span class="detail-meta__label">Должность</span>
-                        <span class="detail-meta__value">{{ card.position|default:"—" }}</span>
-                    </div>
-                    {% if card.position.department %}
-                    <div class="detail-meta">
-                        <span class="detail-meta__label">Отдел</span>
-                        <span class="detail-meta__value">{{ card.position.department }}</span>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="detail-section">
-                <h2 class="detail-section__title">Паспортные данные</h2>
-                <div class="detail-grid__cells">
-                    {% if card.passport_series or card.passport_number %}
-                    <div class="detail-meta">
-                        <span class="detail-meta__label">Серия / Номер</span>
-                        <span class="detail-meta__value">{{ card.passport_series }} {{ card.passport_number }}</span>
-                    </div>
-                    {% endif %}
-                    {% if card.passport_date %}
-                    <div class="detail-meta">
-                        <span class="detail-meta__label">Дата выдачи</span>
-                        <span class="detail-meta__value">{{ card.passport_date }}</span>
-                    </div>
-                    {% endif %}
-                    {% if card.passport_issued_by %}
-                    <div class="detail-meta">
-                        <span class="detail-meta__label">Кем выдан</span>
-                        <span class="detail-meta__value">{{ card.passport_issued_by }}</span>
-                    </div>
-                    {% endif %}
-                    {% if card.citizenship %}
-                    <div class="detail-meta">
-                        <span class="detail-meta__label">Гражданство</span>
-                        <span class="detail-meta__value">{{ card.citizenship }}</span>
-                    </div>
-                    {% endif %}
-                    {% if card.address %}
-                    <div class="detail-meta">
-                        <span class="detail-meta__label">Адрес</span>
-                        <span class="detail-meta__value">{{ card.address }}</span>
-                    </div>
-                    {% endif %}
-                    {% if card.snils %}
-                    <div class="detail-meta">
-                        <span class="detail-meta__label">СНИЛС</span>
-                        <span class="detail-meta__value">{{ card.snils }}</span>
-                    </div>
-                    {% endif %}
-                    {% if card.inn %}
-                    <div class="detail-meta">
-                        <span class="detail-meta__label">ИНН</span>
-                        <span class="detail-meta__value">{{ card.inn }}</span>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            {% if card.education_name or card.specialty or card.diploma_number %}
-            <div class="detail-section">
-                <h2 class="detail-section__title">Образование</h2>
-                <div class="detail-grid__cells">
-                    {% if card.education_name %}
-                    <div class="detail-meta">
-                        <span class="detail-meta__label">Учебное заведение</span>
-                        <span class="detail-meta__value">{{ card.education_name }}</span>
-                    </div>
-                    {% endif %}
-                    {% if card.specialty %}
-                    <div class="detail-meta">
-                        <span class="detail-meta__label">Специальность</span>
-                        <span class="detail-meta__value">{{ card.specialty }}</span>
-                    </div>
-                    {% endif %}
-                    {% if card.education_year %}
-                    <div class="detail-meta">
-                        <span class="detail-meta__label">Год окончания</span>
-                        <span class="detail-meta__value">{{ card.education_year }}</span>
-                    </div>
-                    {% endif %}
-                    {% if card.diploma_number %}
-                    <div class="detail-meta">
-                        <span class="detail-meta__label">Номер диплома</span>
-                        <span class="detail-meta__value">{{ card.diploma_number }}</span>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% endwith %}
-            {% endif %}
-
-            {% if access_rights %}
-            <div class="detail-section">
-                <h2 class="detail-section__title">Права доступа</h2>
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                    {% for ar in access_rights %}
-                    <div class="access-right-row">
-                        <div class="access-right-info">
-                            <span class="access-right-level">{{ ar.access_level.name }}</span>
-                            <span class="access-right-zone">{{ ar.access_level.zone }}</span>
-                            {% if ar.expires_at %}
-                            <span class="access-right-expires">до {{ ar.expires_at }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
         </div>
-    </section>
 
-    <section class="history">
-        <header class="history__header">
-            <h2>История проходов</h2>
-            <p class="history__subtitle">Последние события доступа.</p>
-        </header>
-
-        {% if history %}
-        <div class="history-table">
-            <div class="history-table__head">
-                <span>Дата / время</span>
-                <span>Точка доступа</span>
-                <span>Результат</span>
-                <span>Способ</span>
+        {% if card.passport_series or card.passport_number or card.passport_date or card.citizenship or card.snils or card.inn or card.address or card.passport_issued_by %}
+        <div class="info-section">
+            <p class="info-section__title">Паспортные данные</p>
+            <div class="info-kv-grid">
+                {% if card.passport_series or card.passport_number %}
+                <div class="kv">
+                    <span class="kv__key">Серия / Номер</span>
+                    <span class="kv__val">{{ card.passport_series }} {{ card.passport_number }}</span>
+                </div>
+                {% endif %}
+                {% if card.passport_date %}
+                <div class="kv">
+                    <span class="kv__key">Дата выдачи</span>
+                    <span class="kv__val">{{ card.passport_date }}</span>
+                </div>
+                {% endif %}
+                {% if card.citizenship %}
+                <div class="kv">
+                    <span class="kv__key">Гражданство</span>
+                    <span class="kv__val">{{ card.citizenship }}</span>
+                </div>
+                {% endif %}
+                {% if card.snils %}
+                <div class="kv">
+                    <span class="kv__key">СНИЛС</span>
+                    <span class="kv__val">{{ card.snils }}</span>
+                </div>
+                {% endif %}
+                {% if card.inn %}
+                <div class="kv">
+                    <span class="kv__key">ИНН</span>
+                    <span class="kv__val">{{ card.inn }}</span>
+                </div>
+                {% endif %}
+                {% if card.passport_issued_by %}
+                <div class="kv" style="grid-column:1/-1;">
+                    <span class="kv__key">Кем выдан</span>
+                    <span class="kv__val">{{ card.passport_issued_by }}</span>
+                </div>
+                {% endif %}
+                {% if card.address %}
+                <div class="kv" style="grid-column:1/-1;">
+                    <span class="kv__key">Адрес</span>
+                    <span class="kv__val">{{ card.address }}</span>
+                </div>
+                {% endif %}
             </div>
-            {% for event in history %}
-            <div class="history-table__row">
-                <span>{{ event.datetime }}</span>
-                <span>{{ event.access_point }}</span>
-                <span class="tag {% if event.result == 'allowed' %}tag--success{% elif event.result == 'warning' %}tag--warning{% else %}tag--danger{% endif %}">
-                    {{ event.get_result_display }}
-                </span>
-                <span>{{ event.get_method_display }}</span>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <p>Записей о проходах пока нет.</p>
         </div>
         {% endif %}
-    </section>
+
+        {% if card.education_name or card.specialty or card.education_year or card.diploma_number %}
+        <div class="info-section">
+            <p class="info-section__title">Образование</p>
+            <div class="info-kv-grid">
+                {% if card.education_name %}
+                <div class="kv" style="grid-column:1/-1;">
+                    <span class="kv__key">Учебное заведение</span>
+                    <span class="kv__val">{{ card.education_name }}</span>
+                </div>
+                {% endif %}
+                {% if card.specialty %}
+                <div class="kv" style="grid-column:1/-1;">
+                    <span class="kv__key">Специальность</span>
+                    <span class="kv__val">{{ card.specialty }}</span>
+                </div>
+                {% endif %}
+                {% if card.education_year %}
+                <div class="kv">
+                    <span class="kv__key">Год окончания</span>
+                    <span class="kv__val">{{ card.education_year }}</span>
+                </div>
+                {% endif %}
+                {% if card.diploma_number %}
+                <div class="kv">
+                    <span class="kv__key">Номер диплома</span>
+                    <span class="kv__val">{{ card.diploma_number }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% endwith %}{% endif %}
+
+        {% if access_rights %}
+        <div class="info-section">
+            <p class="info-section__title">Права доступа</p>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                {% for ar in access_rights %}
+                <div class="access-right-row">
+                    <div class="access-right-info">
+                        <span class="access-right-level">{{ ar.access_level.name }}</span>
+                        <span class="access-right-zone">{{ ar.access_level.zone }}</span>
+                        {% if ar.expires_at %}
+                        <span class="access-right-expires">до {{ ar.expires_at }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<!-- История проходов -->
+<div class="history-card">
+    <div class="history-card__header">
+        <div>
+            <p class="history-card__title">История проходов</p>
+            <p class="history-card__subtitle">Последние записи системы контроля доступа</p>
+        </div>
+        {% if request.user.administrator %}
+        <a class="button button--outline" style="font-size:13px;padding:8px 14px;" href="{% url 'employee_history_export_csv' employee.id %}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Экспорт CSV
+        </a>
+        {% endif %}
+    </div>
+
+    {% if history %}
+    <table class="history-tbl">
+        <thead>
+            <tr>
+                <th>Дата / время</th>
+                <th>Точка доступа</th>
+                <th>Результат</th>
+                <th>Способ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in history %}
+            <tr>
+                <td>{{ event.datetime|date:"d.m.Y H:i" }}</td>
+                <td>{{ event.access_point }}</td>
+                <td>
+                    <span class="tag {% if event.result == 'allowed' %}tag--success{% elif event.result == 'warning' %}tag--warning{% else %}tag--danger{% endif %}">
+                        {{ event.get_result_display }}
+                    </span>
+                </td>
+                <td>{{ event.get_method_display }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>Записей о проходах пока нет.</p>
+    </div>
+    {% endif %}
 </div>
 
 {% if request.user.administrator %}

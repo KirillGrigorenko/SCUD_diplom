@@ -45,10 +45,7 @@
             <input class="filter-bar__input no-icon fp-date" type="text" name="date_from" value="{{ date_from }}" placeholder="С даты…" autocomplete="off">
             <input class="filter-bar__input no-icon fp-date" type="text" name="date_to"   value="{{ date_to }}"   placeholder="По дату…" autocomplete="off">
         </div>
-        <div style="display:flex;gap:8px;">
-            <button class="button button--secondary" type="submit">Найти</button>
-            <a class="button button--outline" href="{% url 'history_list' %}">Сброс</a>
-        </div>
+        <a class="button button--outline" href="{% url 'history_list' %}">Сброс</a>
     </form>
 </div>
 

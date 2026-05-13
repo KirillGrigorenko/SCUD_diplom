@@ -40,6 +40,7 @@
 
         <div class="edit-content">
 
+            <!-- УЧЁТНАЯ ЗАПИСЬ -->
             <div class="edit-section">
                 <h2 class="edit-section__title">Учётная запись</h2>
                 <div class="edit-fields">
@@ -54,6 +55,7 @@
                 </div>
             </div>
 
+            <!-- ОСНОВНЫЕ ДАННЫЕ -->
             <div class="edit-section">
                 <h2 class="edit-section__title">Основные данные</h2>
                 <div class="edit-fields">
@@ -74,6 +76,10 @@
                         <input class="input" id="f-hire-date" type="date" name="hire_date" value="{{ post.hire_date|default:'' }}" required>
                     </label>
                     <label class="input-label">
+                        <span class="input-label__text">Дата увольнения</span>
+                        <input class="input" type="date" name="fire_date" value="{{ post.fire_date|default:'' }}">
+                    </label>
+                    <label class="input-label edit-fields__full">
                         <span class="input-label__text">Статус</span>
                         <select class="input" id="f-status" name="status">
                             <option value="active" {% if not post or post.status == 'active' %}selected{% endif %}>Активен</option>
@@ -81,7 +87,14 @@
                             <option value="blocked" {% if post.status == 'blocked' %}selected{% endif %}>Заблокирован</option>
                         </select>
                     </label>
-                    <label class="input-label">
+                </div>
+            </div>
+
+            <!-- ДОЛЖНОСТЬ -->
+            <div class="edit-section">
+                <h2 class="edit-section__title">Должность</h2>
+                <div class="edit-fields">
+                    <label class="input-label edit-fields__full">
                         <span class="input-label__text">Должность</span>
                         <div class="input-with-add">
                             <select class="input" id="f-position" name="position">
@@ -100,6 +113,7 @@
                 </div>
             </div>
 
+            <!-- ПАСПОРТНЫЕ ДАННЫЕ -->
             <div class="edit-section">
                 <h2 class="edit-section__title">Паспортные данные</h2>
                 <div class="edit-fields">
@@ -112,6 +126,10 @@
                         <input class="input" id="f-passport-number" type="text" name="passport_number" value="{{ post.passport_number|default:'' }}">
                     </label>
                     <label class="input-label">
+                        <span class="input-label__text">Дата выдачи</span>
+                        <input class="input" type="date" name="passport_date" value="{{ post.passport_date|default:'' }}">
+                    </label>
+                    <label class="input-label">
                         <span class="input-label__text">Гражданство</span>
                         <select class="input" id="f-citizenship" name="citizenship">
                             <option value="">— Не выбрано —</option>
@@ -119,6 +137,10 @@
                             <option value="{{ c }}" {% if post.citizenship == c %}selected{% endif %}>{{ c }}</option>
                             {% endfor %}
                         </select>
+                    </label>
+                    <label class="input-label edit-fields__full">
+                        <span class="input-label__text">Кем выдан</span>
+                        <input class="input" type="text" name="passport_issued_by" value="{{ post.passport_issued_by|default:'' }}">
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">СНИЛС</span>
@@ -135,9 +157,61 @@
                 </div>
             </div>
 
+            <!-- ОБРАЗОВАНИЕ -->
+            <div class="edit-section">
+                <h2 class="edit-section__title">Образование</h2>
+                <div class="edit-fields">
+                    <label class="input-label">
+                        <span class="input-label__text">Год окончания</span>
+                        <input class="input" id="f-education-year" type="number" name="education_year" min="1950" max="2099" value="{{ post.education_year|default:'' }}">
+                    </label>
+                    <label class="input-label">
+                        <span class="input-label__text">Номер диплома</span>
+                        <input class="input" id="f-diploma-number" type="text" name="diploma_number" value="{{ post.diploma_number|default:'' }}">
+                    </label>
+                    <label class="input-label edit-fields__full">
+                        <span class="input-label__text">Учебное заведение</span>
+                        <input class="input" id="f-education-name" type="text" name="education_name" value="{{ post.education_name|default:'' }}">
+                    </label>
+                    <label class="input-label edit-fields__full">
+                        <span class="input-label__text">Специальность</span>
+                        <input class="input" id="f-specialty" type="text" name="specialty" value="{{ post.specialty|default:'' }}">
+                    </label>
+                </div>
+            </div>
+
+            <!-- ПРАВА ДОСТУПА -->
+            <div class="edit-section">
+                <h2 class="edit-section__title">Права доступа</h2>
+                <details class="add-right-details" open>
+                    <summary class="add-right-summary">+ Добавить право доступа</summary>
+                    <div class="add-right-form">
+                        <div class="edit-fields" style="margin-top:12px;">
+                            <label class="input-label edit-fields__full">
+                                <span class="input-label__text">Уровень доступа</span>
+                                <select class="input" name="new_access_level">
+                                    <option value="">— Выберите —</option>
+                                    {% for al in access_levels %}
+                                    <option value="{{ al.pk }}">{{ al.name }} · {{ al.zone }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label class="input-label">
+                                <span class="input-label__text">Дата назначения</span>
+                                <input class="input" type="date" name="new_assigned_at" value="{{ today }}">
+                            </label>
+                            <label class="input-label">
+                                <span class="input-label__text">Действует до (необязательно)</span>
+                                <input class="input" type="date" name="new_expires_at">
+                            </label>
+                        </div>
+                    </div>
+                </details>
+            </div>
+
             <div id="inn-error" class="form-error" style="display:none">ИНН должен содержать ровно 12 цифр.</div>
 
-            <!-- ===== БИОМЕТРИЯ ===== -->
+            <!-- БИОМЕТРИЯ -->
             <div class="edit-section">
                 <h2 class="edit-section__title">Биометрия (лицо) <span style="font-size:11px;font-weight:400;color:#64748b;">— необязательно</span></h2>
                 <p style="font-size:12px;color:#64748b;margin-bottom:14px;">Сфотографируйте сотрудника — биометрия будет сохранена автоматически при создании.</p>
@@ -216,6 +290,8 @@ document.getElementById('photo-input').addEventListener('change', function () {
     var cities = ['Москва','Санкт-Петербург','Новосибирск','Екатеринбург','Казань','Нижний Новгород','Самара','Омск','Ростов-на-Дону','Уфа','Красноярск','Воронеж','Пермь','Волгоград','Краснодар'];
     var streets = ['Ленина','Пушкина','Гагарина','Мира','Советская','Кирова','Садовая','Молодёжная','Центральная','Комсомольская','Победы','Лесная','Новая','Школьная','Полевая'];
     var statuses = ['active','active','active','blocked','fired'];
+    var institutions = ['МГУ им. М.В. Ломоносова','МГТУ им. Н.Э. Баумана','НИУ ВШЭ','МФТИ','СПбГУ','УрФУ','НГТУ','КФУ','РАНХиГС','Финансовый университет'];
+    var specialties = ['Информационные системы','Программная инженерия','Экономика','Менеджмент','Финансы и кредит','Юриспруденция','Машиностроение','Электроника','Кибербезопасность','Прикладная математика'];
 
     function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
     function rndInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
@@ -227,8 +303,8 @@ document.getElementById('photo-input').addEventListener('change', function () {
         return s;
     }
 
-    function randDate() {
-        var y = rndInt(2015, 2024);
+    function randDate(yearMin, yearMax) {
+        var y = rndInt(yearMin || 2015, yearMax || 2024);
         var m = pad(rndInt(1, 12), 2);
         var d = pad(rndInt(1, 28), 2);
         return y + '-' + m + '-' + d;
@@ -269,17 +345,20 @@ document.getElementById('photo-input').addEventListener('change', function () {
         document.getElementById('f-last-name').value       = lastName;
         document.getElementById('f-first-name').value      = firstName;
         document.getElementById('f-middle-name').value     = middle;
-        document.getElementById('f-hire-date').value       = randDate();
+        document.getElementById('f-hire-date').value       = randDate(2015, 2024);
         document.getElementById('f-passport-series').value = randDigits(4);
         document.getElementById('f-passport-number').value = randDigits(6);
-        setSelect('f-citizenship', 'Россия');
         document.getElementById('f-snils').value           = randSnils();
         document.getElementById('f-inn').value             = randDigits(12);
         document.getElementById('f-address').value         = 'г. ' + city + ', ул. ' + street + ', д. ' + rndInt(1,120) + ', кв. ' + rndInt(1,200);
+        document.getElementById('f-education-year').value  = rndInt(1995, 2020);
+        document.getElementById('f-diploma-number').value  = randDigits(7);
+        document.getElementById('f-education-name').value  = rnd(institutions);
+        document.getElementById('f-specialty').value       = rnd(specialties);
 
+        setSelect('f-citizenship', 'Россия');
         setSelect('f-status', status);
 
-        // Выбрать случайную должность если есть варианты
         var posSelect = document.getElementById('f-position');
         if (posSelect && posSelect.options.length > 1) {
             var idx = rndInt(1, posSelect.options.length - 1);

@@ -165,7 +165,7 @@ def employee_detail(request, pk):
 
     employee = get_object_or_404(Employee, pk=pk)
     employee.image_url = get_minio_url(employee.photo)
-    history = AccessHistory.objects.filter(employee=employee)
+    history = AccessHistory.objects.filter(employee=employee).order_by('-datetime')
     access_rights = AccessRight.objects.filter(employee=employee).select_related('access_level')
 
     return render(request, 'services/employee_detail.html', {
@@ -184,29 +184,37 @@ def employee_edit(request, pk):
     error = None
 
     if request.method == 'POST':
-        employee.last_name = request.POST.get('last_name')
-        employee.first_name = request.POST.get('first_name')
-        employee.middle_name = request.POST.get('middle_name')
-        employee.hire_date = request.POST.get('hire_date')
-        employee.fire_date = request.POST.get('fire_date') or None
-        employee.status = request.POST.get('status')
-
-        photo_file = request.FILES.get('photo')
-        if photo_file:
-            try:
-                key = f'employee_{employee.pk}'
-                upload_photo(photo_file, key)
-                employee.photo = key
-            except Exception as e:
-                error = f'Ошибка загрузки фото: {e}'
-
-        employee.save()
-
         inn = request.POST.get('inn', '').strip()
+        new_username = request.POST.get('new_username', '').strip()
+        new_password = request.POST.get('new_password', '').strip()
+        new_password2 = request.POST.get('new_password2', '').strip()
+
         if inn and not re.fullmatch(r'\d{12}', inn):
             error = 'ИНН должен содержать ровно 12 цифр.'
+        elif new_username and User.objects.filter(username=new_username).exclude(pk=employee.user.pk).exists():
+            error = f'Логин «{new_username}» уже занят.'
+        elif new_password and new_password != new_password2:
+            error = 'Пароли не совпадают.'
 
         if not error:
+            employee.last_name = request.POST.get('last_name')
+            employee.first_name = request.POST.get('first_name')
+            employee.middle_name = request.POST.get('middle_name')
+            employee.hire_date = request.POST.get('hire_date')
+            employee.fire_date = request.POST.get('fire_date') or None
+            employee.status = request.POST.get('status')
+
+            photo_file = request.FILES.get('photo')
+            if photo_file:
+                try:
+                    key = f'employee_{employee.pk}'
+                    upload_photo(photo_file, key)
+                    employee.photo = key
+                except Exception as e:
+                    error = f'Ошибка загрузки фото: {e}'
+
+            employee.save()
+
             card, _ = EmployeeCard.objects.get_or_create(employee=employee)
             card.passport_series = request.POST.get('passport_series', '')
             card.passport_number = request.POST.get('passport_number', '')
@@ -230,7 +238,6 @@ def employee_edit(request, pk):
                 card.position = None
             card.save()
 
-            # Добавление нового права доступа
             new_al_id = request.POST.get('new_access_level', '').strip()
             new_assigned_at = request.POST.get('new_assigned_at', '').strip()
             if new_al_id and new_assigned_at:
@@ -245,6 +252,13 @@ def employee_edit(request, pk):
                     )
                 except AccessLevel.DoesNotExist:
                     pass
+
+            if new_username:
+                employee.user.username = new_username
+                employee.user.save(update_fields=['username'])
+            if new_password:
+                employee.user.set_password(new_password)
+                employee.user.save()
 
             return redirect('employee_detail', pk=pk)
 
@@ -272,6 +286,7 @@ def employee_create(request):
 
     positions = Position.objects.select_related('department').all()
     departments = Department.objects.all()
+    access_levels = AccessLevel.objects.all()
     error = None
 
     if request.method == 'POST':
@@ -282,7 +297,6 @@ def employee_create(request):
         middle_name = request.POST.get('middle_name', '').strip()
         hire_date = request.POST.get('hire_date', '').strip()
         status = request.POST.get('status', 'active')
-
         inn = request.POST.get('inn', '').strip()
 
         if not username or not password or not last_name or not first_name or not hire_date:
@@ -299,6 +313,7 @@ def employee_create(request):
                 first_name=first_name,
                 middle_name=middle_name,
                 hire_date=hire_date,
+                fire_date=request.POST.get('fire_date') or None,
                 status=status,
             )
 
@@ -312,27 +327,41 @@ def employee_create(request):
                 except Exception as e:
                     error = f'Сотрудник создан, но фото не загружено: {e}'
 
-            position_id = request.POST.get('position')
-            passport_series = request.POST.get('passport_series', '')
-            passport_number = request.POST.get('passport_number', '')
-            citizenship = request.POST.get('citizenship', '')
-            address = request.POST.get('address', '')
-            snils = request.POST.get('snils', '')
+            card = EmployeeCard.objects.create(employee=employee)
+            position_id = request.POST.get('position', '').strip()
+            if position_id:
+                try:
+                    card.position = Position.objects.get(pk=position_id)
+                except Position.DoesNotExist:
+                    pass
+            card.passport_series = request.POST.get('passport_series', '')
+            card.passport_number = request.POST.get('passport_number', '')
+            card.passport_date = request.POST.get('passport_date') or None
+            card.passport_issued_by = request.POST.get('passport_issued_by', '')
+            card.citizenship = request.POST.get('citizenship', '')
+            card.address = request.POST.get('address', '')
+            card.snils = request.POST.get('snils', '')
+            card.inn = inn
+            card.education_year = request.POST.get('education_year') or None
+            card.education_name = request.POST.get('education_name', '')
+            card.specialty = request.POST.get('specialty', '')
+            card.diploma_number = request.POST.get('diploma_number', '')
+            card.save()
 
-            if any([position_id, passport_series, passport_number, citizenship, address, snils, inn]):
-                card = EmployeeCard.objects.create(employee=employee)
-                if position_id:
-                    try:
-                        card.position = Position.objects.get(pk=position_id)
-                    except Position.DoesNotExist:
-                        pass
-                card.passport_series = passport_series
-                card.passport_number = passport_number
-                card.citizenship = citizenship
-                card.address = address
-                card.snils = snils
-                card.inn = inn
-                card.save()
+            new_al_id = request.POST.get('new_access_level', '').strip()
+            new_assigned_at = request.POST.get('new_assigned_at', '').strip()
+            if new_al_id and new_assigned_at:
+                try:
+                    al = AccessLevel.objects.get(pk=new_al_id)
+                    expires = request.POST.get('new_expires_at') or None
+                    AccessRight.objects.create(
+                        employee=employee,
+                        access_level=al,
+                        assigned_at=new_assigned_at,
+                        expires_at=expires,
+                    )
+                except AccessLevel.DoesNotExist:
+                    pass
 
             face_b64 = request.POST.get('face_b64', '').strip()
             if face_b64:
@@ -348,14 +377,13 @@ def employee_create(request):
                     bio.face_registered_at = _tz.now().date()
                     bio.status = True
                     bio.save()
-                    # Если отдельное фото не загружено — используем фото с биометрии
                     if not employee.photo:
                         key = f'employee_{employee.pk}'
                         upload_photo(_io.BytesIO(image_bytes), key)
                         employee.photo = key
                         employee.save(update_fields=['photo'])
                 except Exception:
-                    pass  # биометрия необязательна, сотрудник уже создан
+                    pass
 
             if not error:
                 return redirect('employee_detail', pk=employee.pk)
@@ -363,9 +391,11 @@ def employee_create(request):
     return render(request, 'services/employee_create.html', {
         'positions': positions,
         'departments': departments,
+        'access_levels': access_levels,
         'countries': COUNTRIES,
         'error': error,
         'post': request.POST,
+        'today': timezone.now().date().isoformat(),
     })
 
 
@@ -512,6 +542,33 @@ def history_list(request):
 
 import csv
 from django.http import HttpResponse
+
+
+@login_required(login_url='login')
+def employee_history_export_csv(request, pk):
+    if not hasattr(request.user, 'administrator'):
+        return redirect('employee_list')
+    employee = get_object_or_404(Employee, pk=pk)
+    qs = AccessHistory.objects.filter(employee=employee).order_by('-datetime')
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    name = f'{employee.last_name}_{employee.first_name}'
+    response['Content-Disposition'] = f'attachment; filename="history_{name}.csv"'
+    response.write('﻿')
+
+    writer = csv.writer(response)
+    writer.writerow(['Дата/время', 'Точка доступа', 'Результат', 'Способ', 'Камера', 'Уверенность ИИ (%)'])
+    for h in qs:
+        writer.writerow([
+            h.datetime.strftime('%d.%m.%Y %H:%M:%S'),
+            h.access_point,
+            h.get_result_display(),
+            h.get_method_display(),
+            h.get_camera_source_display() if h.camera_source else '',
+            h.confidence if h.confidence is not None else '',
+        ])
+    return response
+
 
 @login_required(login_url='login')
 def history_export_csv(request):

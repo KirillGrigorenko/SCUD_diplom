@@ -120,12 +120,30 @@ document.addEventListener('DOMContentLoaded', function () {
     var dateInputs = document.querySelectorAll('input[type="date"], input.fp-date');
     dateInputs.forEach(function(el) {
         var existing = el.value;
+        var inFilterForm = el.closest('.filter-bar__form');
         flatpickr(el, {
             locale: 'ru',
             dateFormat: 'Y-m-d',
             defaultDate: existing || null,
             allowInput: true,
             disableMobile: true,
+            onChange: inFilterForm ? function() { inFilterForm.submit(); } : null,
+        });
+    });
+
+    // Автосабмит фильтров
+    document.querySelectorAll('.filter-bar__form').forEach(function(form) {
+        var timer;
+        // Текстовые поля (не flatpickr) — с debounce 400ms
+        form.querySelectorAll('input[type="text"]:not(.fp-date)').forEach(function(input) {
+            input.addEventListener('input', function() {
+                clearTimeout(timer);
+                timer = setTimeout(function() { form.submit(); }, 400);
+            });
+        });
+        // Селекты — мгновенно (custom-select диспатчит change на hidden select)
+        form.querySelectorAll('select').forEach(function(select) {
+            select.addEventListener('change', function() { form.submit(); });
         });
     });
 
