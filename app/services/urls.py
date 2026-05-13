@@ -11,4 +11,9 @@ urlpatterns = [
     path('employee/<int:pk>/', views.employee_detail, name='employee_detail'),
     path('employee/<int:pk>/edit/', views.employee_edit, name='employee_edit'),
     path('employee/<int:pk>/delete/', views.employee_delete, name='employee_delete'),
+    path('access-right/<int:pk>/delete/', views.access_right_delete, name='access_right_delete'),
+    path('access-levels/', views.access_level_list, name='access_level_list'),
+    path('access-levels/<int:pk>/delete/', views.access_level_delete, name='access_level_delete'),
+    path('history/', views.history_list, name='history_list'),
+    path('history/export/', views.history_export_csv, name='history_export_csv'),
 ]

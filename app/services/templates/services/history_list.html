@@ -1,0 +1,80 @@
+{% extends 'services/base.html' %}
+{% block title %}История проходов{% endblock %}
+
+{% block content %}
+
+<div class="edit-header">
+    <div>
+        <p class="edit-header__sub">Журнал</p>
+        <h1 class="edit-header__title">История проходов</h1>
+    </div>
+    <a class="button button--outline" href="{% url 'history_export_csv' %}?employee={{ employee_q }}&result={{ result_f }}&date_from={{ date_from }}&date_to={{ date_to }}" style="display:inline-flex;align-items:center;gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Экспорт CSV
+    </a>
+</div>
+
+<!-- Фильтры -->
+<form method="get" class="filter-bar" style="margin-bottom:20px;">
+    <input class="input filter-bar__input" type="text" name="employee" placeholder="Поиск по сотруднику" value="{{ employee_q }}">
+    <select class="input" name="result" style="min-width:160px;">
+        <option value="">Все результаты</option>
+        <option value="allowed" {% if result_f == 'allowed' %}selected{% endif %}>Разрешён</option>
+        <option value="denied"  {% if result_f == 'denied'  %}selected{% endif %}>Запрещён</option>
+        <option value="warning" {% if result_f == 'warning' %}selected{% endif %}>Предупреждение</option>
+    </select>
+    <input class="input" type="date" name="date_from" value="{{ date_from }}" style="min-width:150px;">
+    <input class="input" type="date" name="date_to"   value="{{ date_to }}"   style="min-width:150px;">
+    <button class="button button--primary" type="submit">Применить</button>
+    <a class="button button--outline" href="{% url 'history_list' %}">Сбросить</a>
+</form>
+
+<p style="font-size:13px;color:#475569;margin-bottom:12px;">
+    Показано записей: <strong style="color:#94a3b8;">{{ history|length }}</strong>
+    {% if total > history|length %} из {{ total }}{% endif %}
+</p>
+
+{% if history %}
+<div class="card" style="overflow:auto;">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Дата / время</th>
+                <th>Сотрудник</th>
+                <th>Точка доступа</th>
+                <th>Результат</th>
+                <th>Способ</th>
+                <th>Камера</th>
+                <th style="text-align:right;">Ув. ИИ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in history %}
+            <tr>
+                <td style="white-space:nowrap;color:#64748b;font-size:12px;">{{ h.datetime|date:"d.m.Y H:i:s" }}</td>
+                <td>
+                    <a href="{% url 'employee_detail' h.employee.id %}" style="color:#e2e8f0;text-decoration:none;font-weight:500;">{{ h.employee }}</a>
+                </td>
+                <td style="color:#94a3b8;">{{ h.access_point }}</td>
+                <td>
+                    <span class="tag {% if h.result == 'allowed' %}tag--success{% elif h.result == 'warning' %}tag--warning{% else %}tag--danger{% endif %}">
+                        {{ h.get_result_display }}
+                    </span>
+                </td>
+                <td style="color:#94a3b8;font-size:13px;">{{ h.get_method_display }}</td>
+                <td style="color:#64748b;font-size:12px;">{{ h.get_camera_source_display|default:"—" }}</td>
+                <td style="text-align:right;font-size:12px;color:{% if h.confidence and h.confidence >= 80 %}#34d399{% elif h.confidence and h.confidence >= 50 %}#fbbf24{% elif h.confidence %}#f87171{% else %}#475569{% endif %};">
+                    {% if h.confidence is not None %}{{ h.confidence }}%{% else %}—{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <p>Записей не найдено.</p>
+</div>
+{% endif %}
+
+{% endblock %}

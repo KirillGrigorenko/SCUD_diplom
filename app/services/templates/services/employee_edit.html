@@ -34,6 +34,7 @@
 
         <div class="edit-content">
 
+            <!-- ОСНОВНЫЕ ДАННЫЕ -->
             <div class="edit-section">
                 <h2 class="edit-section__title">Основные данные</h2>
                 <div class="edit-fields">
@@ -53,6 +54,10 @@
                         <span class="input-label__text">Дата найма</span>
                         <input class="input" type="date" name="hire_date" value="{{ employee.hire_date|date:'Y-m-d' }}">
                     </label>
+                    <label class="input-label">
+                        <span class="input-label__text">Дата увольнения</span>
+                        <input class="input" type="date" name="fire_date" value="{{ employee.fire_date|date:'Y-m-d'|default:'' }}">
+                    </label>
                     <label class="input-label edit-fields__full">
                         <span class="input-label__text">Статус</span>
                         <select class="input" name="status">
@@ -64,6 +69,7 @@
                 </div>
             </div>
 
+            <!-- ДОЛЖНОСТЬ -->
             <div class="edit-section">
                 <h2 class="edit-section__title">Должность</h2>
                 <div class="edit-fields">
@@ -86,6 +92,7 @@
                 </div>
             </div>
 
+            <!-- ПАСПОРТНЫЕ ДАННЫЕ -->
             <div class="edit-section">
                 <h2 class="edit-section__title">Паспортные данные</h2>
                 <div class="edit-fields">
@@ -98,6 +105,10 @@
                         <input class="input" type="text" name="passport_number" value="{{ card.passport_number|default:'' }}">
                     </label>
                     <label class="input-label">
+                        <span class="input-label__text">Дата выдачи</span>
+                        <input class="input" type="date" name="passport_date" value="{{ card.passport_date|date:'Y-m-d'|default:'' }}">
+                    </label>
+                    <label class="input-label">
                         <span class="input-label__text">Гражданство</span>
                         <select class="input" name="citizenship">
                             <option value="">— Не выбрано —</option>
@@ -105,6 +116,10 @@
                             <option value="{{ c }}" {% if card.citizenship == c %}selected{% endif %}>{{ c }}</option>
                             {% endfor %}
                         </select>
+                    </label>
+                    <label class="input-label edit-fields__full">
+                        <span class="input-label__text">Кем выдан</span>
+                        <input class="input" type="text" name="passport_issued_by" value="{{ card.passport_issued_by|default:'' }}">
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">СНИЛС</span>
@@ -121,9 +136,86 @@
                 </div>
             </div>
 
+            <!-- ОБРАЗОВАНИЕ -->
+            <div class="edit-section">
+                <h2 class="edit-section__title">Образование</h2>
+                <div class="edit-fields">
+                    <label class="input-label">
+                        <span class="input-label__text">Год окончания</span>
+                        <input class="input" type="number" name="education_year" min="1950" max="2099" value="{{ card.education_year|default:'' }}">
+                    </label>
+                    <label class="input-label">
+                        <span class="input-label__text">Номер диплома</span>
+                        <input class="input" type="text" name="diploma_number" value="{{ card.diploma_number|default:'' }}">
+                    </label>
+                    <label class="input-label edit-fields__full">
+                        <span class="input-label__text">Учебное заведение</span>
+                        <input class="input" type="text" name="education_name" value="{{ card.education_name|default:'' }}">
+                    </label>
+                    <label class="input-label edit-fields__full">
+                        <span class="input-label__text">Специальность</span>
+                        <input class="input" type="text" name="specialty" value="{{ card.specialty|default:'' }}">
+                    </label>
+                </div>
+            </div>
+
+            <!-- ПРАВА ДОСТУПА -->
+            <div class="edit-section">
+                <h2 class="edit-section__title">Права доступа</h2>
+
+                {% if access_rights %}
+                <div class="access-rights-list">
+                    {% for ar in access_rights %}
+                    <div class="access-right-row">
+                        <div class="access-right-info">
+                            <span class="access-right-level">{{ ar.access_level.name }}</span>
+                            <span class="access-right-zone">{{ ar.access_level.zone }}</span>
+                            {% if ar.expires_at %}
+                            <span class="access-right-expires">до {{ ar.expires_at }}</span>
+                            {% endif %}
+                        </div>
+                        <form method="post" action="{% url 'access_right_delete' ar.pk %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-icon-danger" title="Удалить право">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="font-size:13px;color:#475569;margin-bottom:12px;">Права доступа не назначены.</p>
+                {% endif %}
+
+                <details class="add-right-details">
+                    <summary class="add-right-summary">+ Добавить право доступа</summary>
+                    <div class="add-right-form">
+                        <div class="edit-fields" style="margin-top:12px;">
+                            <label class="input-label edit-fields__full">
+                                <span class="input-label__text">Уровень доступа</span>
+                                <select class="input" name="new_access_level">
+                                    <option value="">— Выберите —</option>
+                                    {% for al in access_levels %}
+                                    <option value="{{ al.pk }}">{{ al.name }} · {{ al.zone }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label class="input-label">
+                                <span class="input-label__text">Дата назначения</span>
+                                <input class="input" type="date" name="new_assigned_at" value="{{ today }}">
+                            </label>
+                            <label class="input-label">
+                                <span class="input-label__text">Действует до (необязательно)</span>
+                                <input class="input" type="date" name="new_expires_at">
+                            </label>
+                        </div>
+                    </div>
+                </details>
+            </div>
+
             <div id="inn-error" class="form-error" style="display:none">ИНН должен содержать ровно 12 цифр.</div>
 
-            <!-- ===== БИОМЕТРИЯ ===== -->
+            <!-- БИОМЕТРИЯ -->
             <div class="edit-section" id="bio-section">
                 <h2 class="edit-section__title">Биометрия (лицо)</h2>
 
@@ -168,7 +260,6 @@
 {% include 'services/_position_modal.html' %}
 
 <script>
-// ---------- биометрия (редактирование) ----------
 var _bioBlob = null;
 
 function bioOnCapture(blob) {
@@ -201,7 +292,6 @@ function bioRegisterEdit() {
             btn.textContent = 'Перерегистрировать лицо';
             btn.disabled = true;
             btn.style.opacity = '.5';
-            // обновляем аватар в сайдбаре
             if (res.body.photo_url) {
                 var preview = document.getElementById('photo-preview');
                 if (preview) preview.src = res.body.photo_url + '?t=' + Date.now();
@@ -223,7 +313,6 @@ function bioRegisterEdit() {
         btn.textContent = '{% if bio_registered %}Перерегистрировать лицо{% else %}Зарегистрировать лицо{% endif %}';
     });
 }
-// -----------------------------------------------
 
 document.getElementById('photo-input').addEventListener('change', function () {
     var file = this.files[0];

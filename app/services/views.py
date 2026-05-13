@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db.models import Q
 from django.contrib.auth.models import User
-from .models import Employee, Administrator, AccessHistory, EmployeeCard, Position, Department
+from .models import Employee, Administrator, AccessHistory, EmployeeCard, Position, Department, AccessLevel, AccessRight
+from django.utils import timezone
 from django.conf import settings
 from minio import Minio
 import io
@@ -165,10 +166,12 @@ def employee_detail(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     employee.image_url = get_minio_url(employee.photo)
     history = AccessHistory.objects.filter(employee=employee)
+    access_rights = AccessRight.objects.filter(employee=employee).select_related('access_level')
 
     return render(request, 'services/employee_detail.html', {
         'employee': employee,
         'history': history,
+        'access_rights': access_rights,
     })
 
 
@@ -185,6 +188,7 @@ def employee_edit(request, pk):
         employee.first_name = request.POST.get('first_name')
         employee.middle_name = request.POST.get('middle_name')
         employee.hire_date = request.POST.get('hire_date')
+        employee.fire_date = request.POST.get('fire_date') or None
         employee.status = request.POST.get('status')
 
         photo_file = request.FILES.get('photo')
@@ -206,10 +210,16 @@ def employee_edit(request, pk):
             card, _ = EmployeeCard.objects.get_or_create(employee=employee)
             card.passport_series = request.POST.get('passport_series', '')
             card.passport_number = request.POST.get('passport_number', '')
+            card.passport_date = request.POST.get('passport_date') or None
+            card.passport_issued_by = request.POST.get('passport_issued_by', '')
             card.citizenship = request.POST.get('citizenship', '')
             card.address = request.POST.get('address', '')
             card.snils = request.POST.get('snils', '')
             card.inn = inn
+            card.education_year = request.POST.get('education_year') or None
+            card.education_name = request.POST.get('education_name', '')
+            card.specialty = request.POST.get('specialty', '')
+            card.diploma_number = request.POST.get('diploma_number', '')
             position_id = request.POST.get('position', '').strip()
             if position_id:
                 try:
@@ -219,6 +229,23 @@ def employee_edit(request, pk):
             else:
                 card.position = None
             card.save()
+
+            # Добавление нового права доступа
+            new_al_id = request.POST.get('new_access_level', '').strip()
+            new_assigned_at = request.POST.get('new_assigned_at', '').strip()
+            if new_al_id and new_assigned_at:
+                try:
+                    al = AccessLevel.objects.get(pk=new_al_id)
+                    expires = request.POST.get('new_expires_at') or None
+                    AccessRight.objects.create(
+                        employee=employee,
+                        access_level=al,
+                        assigned_at=new_assigned_at,
+                        expires_at=expires,
+                    )
+                except AccessLevel.DoesNotExist:
+                    pass
+
             return redirect('employee_detail', pk=pk)
 
     bio = getattr(employee, 'biometricdata', None)
@@ -228,8 +255,11 @@ def employee_edit(request, pk):
         'photo_url': get_minio_url(employee.photo),
         'positions': Position.objects.select_related('department').all(),
         'departments': Department.objects.all(),
+        'access_levels': AccessLevel.objects.all(),
+        'access_rights': AccessRight.objects.filter(employee=employee).select_related('access_level'),
         'countries': COUNTRIES,
         'error': error,
+        'today': timezone.now().date().isoformat(),
         'bio_registered': bool(bio and bio.face_hash and bio.status),
         'bio_registered_at': bio.face_registered_at if bio and bio.face_hash and bio.status else None,
     })
@@ -394,3 +424,130 @@ def department_create(request):
 
     department = Department.objects.create(name=name)
     return JsonResponse({'pk': department.pk, 'name': department.name})
+
+
+@login_required(login_url='login')
+def access_right_delete(request, pk):
+    if not hasattr(request.user, 'administrator'):
+        return redirect('employee_list')
+    if request.method != 'POST':
+        return redirect('employee_list')
+    ar = get_object_or_404(AccessRight, pk=pk)
+    employee_pk = ar.employee_id
+    ar.delete()
+    return redirect('employee_edit', pk=employee_pk)
+
+
+@login_required(login_url='login')
+def access_level_list(request):
+    if not hasattr(request.user, 'administrator'):
+        return redirect('employee_list')
+
+    error = None
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        code = request.POST.get('code', '').strip()
+        zone = request.POST.get('zone', '').strip()
+        description = request.POST.get('description', '').strip()
+        if not name or not code or not zone:
+            error = 'Название, код и зона обязательны.'
+        else:
+            AccessLevel.objects.create(name=name, code=code, zone=zone, description=description)
+            return redirect('access_level_list')
+
+    levels = AccessLevel.objects.all()
+    return render(request, 'services/access_level_list.html', {
+        'levels': levels,
+        'error': error,
+    })
+
+
+@login_required(login_url='login')
+def access_level_delete(request, pk):
+    if not hasattr(request.user, 'administrator'):
+        return redirect('access_level_list')
+    if request.method != 'POST':
+        return redirect('access_level_list')
+    get_object_or_404(AccessLevel, pk=pk).delete()
+    return redirect('access_level_list')
+
+
+@login_required(login_url='login')
+def history_list(request):
+    if not hasattr(request.user, 'administrator'):
+        return redirect('employee_detail', pk=request.user.employee.id)
+
+    qs = AccessHistory.objects.select_related('employee').order_by('-datetime')
+
+    employee_q = request.GET.get('employee', '').strip()
+    result_f = request.GET.get('result', '').strip()
+    date_from = request.GET.get('date_from', '').strip()
+    date_to = request.GET.get('date_to', '').strip()
+
+    if employee_q:
+        qs = qs.filter(
+            Q(employee__last_name__icontains=employee_q) |
+            Q(employee__first_name__icontains=employee_q) |
+            Q(employee__middle_name__icontains=employee_q)
+        )
+    if result_f in ('allowed', 'denied', 'warning'):
+        qs = qs.filter(result=result_f)
+    if date_from:
+        qs = qs.filter(datetime__date__gte=date_from)
+    if date_to:
+        qs = qs.filter(datetime__date__lte=date_to)
+
+    return render(request, 'services/history_list.html', {
+        'history': qs[:500],
+        'employee_q': employee_q,
+        'result_f': result_f,
+        'date_from': date_from,
+        'date_to': date_to,
+        'total': qs.count(),
+    })
+
+
+import csv
+from django.http import HttpResponse
+
+@login_required(login_url='login')
+def history_export_csv(request):
+    if not hasattr(request.user, 'administrator'):
+        return redirect('employee_list')
+
+    qs = AccessHistory.objects.select_related('employee').order_by('-datetime')
+
+    employee_q = request.GET.get('employee', '').strip()
+    if employee_q:
+        qs = qs.filter(
+            Q(employee__last_name__icontains=employee_q) |
+            Q(employee__first_name__icontains=employee_q) |
+            Q(employee__middle_name__icontains=employee_q)
+        )
+    result_f = request.GET.get('result', '').strip()
+    if result_f in ('allowed', 'denied', 'warning'):
+        qs = qs.filter(result=result_f)
+    date_from = request.GET.get('date_from', '').strip()
+    if date_from:
+        qs = qs.filter(datetime__date__gte=date_from)
+    date_to = request.GET.get('date_to', '').strip()
+    if date_to:
+        qs = qs.filter(datetime__date__lte=date_to)
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="history.csv"'
+    response.write('﻿')  # BOM для Excel
+
+    writer = csv.writer(response)
+    writer.writerow(['Дата/время', 'Сотрудник', 'Точка доступа', 'Результат', 'Способ', 'Камера', 'Уверенность ИИ (%)'])
+    for h in qs[:5000]:
+        writer.writerow([
+            h.datetime.strftime('%d.%m.%Y %H:%M:%S'),
+            str(h.employee),
+            h.access_point,
+            h.get_result_display(),
+            h.get_method_display(),
+            h.get_camera_source_display() if h.camera_source else '',
+            h.confidence if h.confidence is not None else '',
+        ])
+    return response

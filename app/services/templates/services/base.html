@@ -30,6 +30,10 @@
                     {% if request.user.is_authenticated %}
                     <nav class="topbar__nav">
                         <a class="topbar__nav-link" href="{% url 'employee_list' %}">Сотрудники</a>
+                        {% if request.user.administrator or request.user.is_staff or request.user.is_superuser %}
+                        <a class="topbar__nav-link" href="{% url 'history_list' %}">История</a>
+                        <a class="topbar__nav-link" href="{% url 'access_level_list' %}">Уровни доступа</a>
+                        {% endif %}
                     </nav>
                     {% endif %}
                 </div>
