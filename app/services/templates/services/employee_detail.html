@@ -96,12 +96,40 @@
 <form id="delete-form" method="post" action="{% url 'employee_delete' employee.id %}" style="display:none;">
     {% csrf_token %}
 </form>
+
+<div id="delete-modal" class="modal-backdrop" style="display:none;" onclick="closeDeleteModal(event)">
+    <div class="modal-box">
+        <div class="modal-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/>
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            </svg>
+        </div>
+        <h3 class="modal-title">Удалить сотрудника?</h3>
+        <p class="modal-text">
+            <strong>{{ employee.full_name }}</strong> будет удалён навсегда вместе с учётной записью и всеми данными. Это действие нельзя отменить.
+        </p>
+        <div class="modal-actions">
+            <button type="button" class="button button--outline" onclick="closeDeleteModal()">Отмена</button>
+            <button type="button" class="button button--danger-solid" onclick="document.getElementById('delete-form').submit()">Да, удалить</button>
+        </div>
+    </div>
+</div>
+
 <script>
 function confirmDelete() {
-    if (confirm('Удалить сотрудника {{ employee.full_name }} навсегда? Это действие нельзя отменить.')) {
-        document.getElementById('delete-form').submit();
+    document.getElementById('delete-modal').style.display = 'flex';
+}
+function closeDeleteModal(e) {
+    if (!e || e.target === document.getElementById('delete-modal')) {
+        document.getElementById('delete-modal').style.display = 'none';
     }
 }
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDeleteModal();
+});
 </script>
 {% endif %}
 
