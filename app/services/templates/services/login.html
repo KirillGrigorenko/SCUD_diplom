@@ -2,42 +2,319 @@
 {% block title %}Вход{% endblock %}
 
 {% block content %}
-
 <div class="auth-screen">
-    <div class="auth-card">
+    <div class="auth-card" style="max-width:480px">
         <div class="auth-card__header">
             <h1 class="auth-card__title">Добро пожаловать</h1>
-            <p class="auth-card__subtitle">Войдите, чтобы продолжить работу со системой</p>
+            <p class="auth-card__subtitle">Войдите, чтобы продолжить работу с системой</p>
         </div>
 
-        {% if form.errors %}
-        <div class="auth-card__alert">
-            <strong>Ошибка:</strong> неверный логин или пароль
+        <!-- Переключатель вкладок -->
+        <div style="display:flex;border:1px solid #1e293b;border-radius:10px;overflow:hidden;margin-bottom:24px;">
+            <button type="button" id="tab-password"
+                onclick="switchTab('password')"
+                style="flex:1;padding:10px;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:background .2s;background:#0ea5e9;color:#fff;">
+                По паролю
+            </button>
+            <button type="button" id="tab-face"
+                onclick="switchTab('face')"
+                style="flex:1;padding:10px;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:background .2s;background:transparent;color:#94a3b8;">
+                По лицу
+            </button>
         </div>
-        {% endif %}
 
-        <form class="auth-form" method="post" autocomplete="off">
-            {% csrf_token %}
-            <label class="input-label">
+        <!-- ======== ВКЛАДКА: ПАРОЛЬ ======== -->
+        <div id="panel-password">
+            {% if form.errors %}
+            <div class="auth-card__alert">
+                <strong>Ошибка:</strong> неверный логин или пароль
+            </div>
+            {% endif %}
+
+            <form class="auth-form" method="post" autocomplete="off">
+                {% csrf_token %}
+                <label class="input-label">
+                    <span class="input-label__text">Логин</span>
+                    <input class="input" type="text" name="username" placeholder="Введите логин" autofocus>
+                </label>
+                <label class="input-label">
+                    <span class="input-label__text">Пароль</span>
+                    <input class="input" type="password" name="password" placeholder="Введите пароль">
+                </label>
+                <label class="input-label input-label--checkbox">
+                    <input type="checkbox" name="remember_me" {% if remember %}checked{% endif %}>
+                    <span class="input-label__text">Запомнить меня</span>
+                </label>
+                <button type="submit" class="button button--primary">Войти</button>
+            </form>
+        </div>
+
+        <!-- ======== ВКЛАДКА: ЛИЦО ======== -->
+        <div id="panel-face" style="display:none;">
+
+            <div id="face-msg-error" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;font-size:13px;"></div>
+            <div id="face-msg-warning" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.3);color:#fde047;font-size:13px;"></div>
+
+            <label class="input-label" style="margin-bottom:16px;">
                 <span class="input-label__text">Логин</span>
-                <input class="input" type="text" id="username" name="username" placeholder="Введите логин" autofocus>
+                <input class="input" type="text" id="face-username" placeholder="Ваш логин" autocomplete="username">
             </label>
 
-            <label class="input-label">
-                <span class="input-label__text">Пароль</span>
-                <input class="input" type="password" id="password" name="password" placeholder="Введите пароль">
-            </label>
+            <!-- Выбор камеры -->
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <button type="button" id="cam-laptop" onclick="selectCamera('laptop')"
+                    style="flex:1;padding:7px;font-size:12px;font-weight:500;border-radius:8px;border:none;cursor:pointer;background:#0ea5e9;color:#fff;transition:background .2s;">
+                    Ноутбук
+                </button>
+                <button type="button" id="cam-external" onclick="selectCamera('external')"
+                    style="flex:1;padding:7px;font-size:12px;font-weight:500;border-radius:8px;border:1px solid #1e293b;cursor:pointer;background:transparent;color:#64748b;transition:background .2s;">
+                    Камера УК
+                </button>
+            </div>
 
-            <label class="input-label input-label--checkbox">
-                <input type="checkbox" name="remember_me" id="remember-me" {% if remember %}checked{% endif %}>
-                <span class="input-label__text">Запомнить меня</span>
-            </label>
+            <!-- Область камеры -->
+            <div style="position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:4/3;margin-bottom:12px;">
+                <video id="face-video" autoplay playsinline muted
+                    style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+                <canvas id="face-canvas" style="display:none;"></canvas>
+                <img id="face-preview" style="display:none;width:100%;height:100%;object-fit:cover;">
 
-            <button type="submit" class="button button--primary">Войти</button>
-        </form>
+                <!-- Заглушка внешней камеры -->
+                <div id="cam-stub" style="display:none;position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#475569;">
+                    <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="opacity:.4">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+                    </svg>
+                    <span style="font-size:13px;font-weight:500;">Камера УК не подключена</span>
+                    <span style="font-size:11px;">Функция будет доступна после подключения</span>
+                </div>
+
+                <!-- Прицел -->
+                <div id="face-reticle" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                    <div style="width:120px;height:150px;border-radius:50%;border:2px solid rgba(255,255,255,.4);"></div>
+                </div>
+
+                <!-- Загрузка камеры -->
+                <div id="cam-loading" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;color:#94a3b8;font-size:13px;">
+                    Запуск камеры…
+                </div>
+            </div>
+
+            <!-- Кнопки -->
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+                <button type="button" id="btn-capture" onclick="captureFrame()" disabled
+                    style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:#0ea5e9;color:#fff;transition:opacity .2s;opacity:.5;">
+                    Сделать фото
+                </button>
+                <button type="button" id="btn-retake" onclick="retakePhoto()"
+                    style="display:none;flex:1;padding:10px;border-radius:10px;border:1px solid #1e293b;cursor:pointer;font-size:13px;font-weight:500;background:transparent;color:#94a3b8;">
+                    Переснять
+                </button>
+            </div>
+
+            <div id="face-ready-hint" style="display:none;color:#34d399;font-size:12px;margin-bottom:12px;">
+                Фото готово — нажмите «Войти по лицу»
+            </div>
+
+            <button type="button" id="btn-face-submit" onclick="submitFace()" disabled
+                style="width:100%;padding:12px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-weight:600;background:#0ea5e9;color:#fff;opacity:.5;transition:opacity .2s;">
+                Войти по лицу
+            </button>
+        </div>
 
         <p class="auth-card__foot">Используйте учетные данные из вашей организации.</p>
     </div>
 </div>
 
+<script>
+(function () {
+    var currentTab = 'password';
+    var currentCamera = 'laptop';
+    var videoStream = null;
+    var capturedBlob = null;
+
+    window.switchTab = function (tab) {
+        currentTab = tab;
+        document.getElementById('panel-password').style.display = tab === 'password' ? '' : 'none';
+        document.getElementById('panel-face').style.display = tab === 'face' ? '' : 'none';
+        document.getElementById('tab-password').style.background = tab === 'password' ? '#0ea5e9' : 'transparent';
+        document.getElementById('tab-password').style.color = tab === 'password' ? '#fff' : '#94a3b8';
+        document.getElementById('tab-face').style.background = tab === 'face' ? '#0ea5e9' : 'transparent';
+        document.getElementById('tab-face').style.color = tab === 'face' ? '#fff' : '#94a3b8';
+
+        if (tab === 'face' && currentCamera === 'laptop' && !videoStream) {
+            startCamera();
+        }
+        if (tab === 'password') {
+            stopCamera();
+        }
+    };
+
+    window.selectCamera = function (cam) {
+        currentCamera = cam;
+        var laptopBtn = document.getElementById('cam-laptop');
+        var extBtn = document.getElementById('cam-external');
+        laptopBtn.style.background = cam === 'laptop' ? '#0ea5e9' : 'transparent';
+        laptopBtn.style.color = cam === 'laptop' ? '#fff' : '#64748b';
+        laptopBtn.style.border = cam === 'laptop' ? 'none' : '1px solid #1e293b';
+        extBtn.style.background = cam === 'external' ? '#0ea5e9' : 'transparent';
+        extBtn.style.color = cam === 'external' ? '#fff' : '#64748b';
+        extBtn.style.border = cam === 'external' ? 'none' : '1px solid #1e293b';
+
+        capturedBlob = null;
+        document.getElementById('btn-face-submit').disabled = true;
+        document.getElementById('btn-face-submit').style.opacity = '.5';
+        document.getElementById('face-ready-hint').style.display = 'none';
+
+        if (cam === 'laptop') {
+            document.getElementById('cam-stub').style.display = 'none';
+            document.getElementById('face-video').style.display = 'block';
+            document.getElementById('face-reticle').style.display = 'flex';
+            document.getElementById('btn-capture').style.display = '';
+            document.getElementById('btn-retake').style.display = 'none';
+            document.getElementById('face-preview').style.display = 'none';
+            stopCamera();
+            startCamera();
+        } else {
+            stopCamera();
+            document.getElementById('face-video').style.display = 'none';
+            document.getElementById('face-reticle').style.display = 'none';
+            document.getElementById('face-preview').style.display = 'none';
+            document.getElementById('btn-capture').style.display = 'none';
+            document.getElementById('btn-retake').style.display = 'none';
+            var stub = document.getElementById('cam-stub');
+            stub.style.display = 'flex';
+        }
+    };
+
+    function startCamera() {
+        var loading = document.getElementById('cam-loading');
+        loading.style.display = 'flex';
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                videoStream = stream;
+                var video = document.getElementById('face-video');
+                video.srcObject = stream;
+                video.onloadedmetadata = function () {
+                    loading.style.display = 'none';
+                    var btn = document.getElementById('btn-capture');
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                };
+            })
+            .catch(function () {
+                loading.style.display = 'none';
+                showError('Нет доступа к камере ноутбука.');
+            });
+    }
+
+    function stopCamera() {
+        if (videoStream) {
+            videoStream.getTracks().forEach(function (t) { t.stop(); });
+            videoStream = null;
+        }
+        var btn = document.getElementById('btn-capture');
+        if (btn) { btn.disabled = true; btn.style.opacity = '.5'; }
+    }
+
+    window.captureFrame = function () {
+        var video = document.getElementById('face-video');
+        var canvas = document.getElementById('face-canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        canvas.toBlob(function (blob) {
+            capturedBlob = blob;
+            var url = URL.createObjectURL(blob);
+            var preview = document.getElementById('face-preview');
+            preview.src = url;
+            preview.style.display = 'block';
+            document.getElementById('face-video').style.display = 'none';
+            document.getElementById('face-reticle').style.display = 'none';
+            document.getElementById('btn-capture').style.display = 'none';
+            document.getElementById('btn-retake').style.display = '';
+            document.getElementById('face-ready-hint').style.display = 'block';
+            var submitBtn = document.getElementById('btn-face-submit');
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            stopCamera();
+        }, 'image/jpeg', 0.92);
+    };
+
+    window.retakePhoto = function () {
+        capturedBlob = null;
+        document.getElementById('face-preview').style.display = 'none';
+        document.getElementById('face-video').style.display = 'block';
+        document.getElementById('face-reticle').style.display = 'flex';
+        document.getElementById('btn-capture').style.display = '';
+        document.getElementById('btn-retake').style.display = 'none';
+        document.getElementById('face-ready-hint').style.display = 'none';
+        var submitBtn = document.getElementById('btn-face-submit');
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '.5';
+        startCamera();
+    };
+
+    window.submitFace = function () {
+        var username = document.getElementById('face-username').value.trim();
+        if (!username) { showError('Укажите логин.'); return; }
+        if (!capturedBlob && currentCamera === 'laptop') { showError('Сначала сделайте фото.'); return; }
+
+        clearMessages();
+        var btn = document.getElementById('btn-face-submit');
+        btn.disabled = true;
+        btn.textContent = 'Проверяем…';
+
+        var fd = new FormData();
+        fd.append('username', username);
+        fd.append('zone', 'main');
+        fd.append('camera_source', currentCamera);
+        if (capturedBlob) {
+            fd.append('image', capturedBlob, 'face.jpg');
+        } else {
+            // внешняя камера — заглушка: шлём пустой blob
+            fd.append('image', new Blob([], {type:'image/jpeg'}), 'face.jpg');
+        }
+
+        fetch('/api/auth/login/face/', {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: fd,
+        })
+        .then(function (r) { return r.json().then(function (j) { return {status: r.status, body: j}; }); })
+        .then(function (res) {
+            if (res.body.decision === 'allowed') {
+                window.location.href = '/employees/';
+            } else if (res.body.decision === 'warning') {
+                showWarning((res.body.message || 'Уверенность ИИ недостаточна, вход зафиксирован.') + ' Перенаправление…');
+                setTimeout(function () { window.location.href = '/employees/'; }, 2500);
+            } else {
+                showError(res.body.message || res.body.error || 'Доступ запрещён');
+                btn.disabled = false;
+                btn.textContent = 'Войти по лицу';
+            }
+        })
+        .catch(function () {
+            showError('Сервер недоступен');
+            btn.disabled = false;
+            btn.textContent = 'Войти по лицу';
+        });
+    };
+
+    function showError(msg) {
+        var el = document.getElementById('face-msg-error');
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+    function showWarning(msg) {
+        var el = document.getElementById('face-msg-warning');
+        el.textContent = '⚠ ' + msg;
+        el.style.display = 'block';
+    }
+    function clearMessages() {
+        document.getElementById('face-msg-error').style.display = 'none';
+        document.getElementById('face-msg-warning').style.display = 'none';
+    }
+}());
+</script>
 {% endblock %}
