@@ -42,8 +42,8 @@
                 <option value="denied"  {% if result_f == 'denied'  %}selected{% endif %}>Запрещён</option>
                 <option value="warning" {% if result_f == 'warning' %}selected{% endif %}>Предупреждение</option>
             </select>
-            <input class="filter-bar__input fp-date" type="text" name="date_from" value="{{ date_from }}" placeholder="С даты…" autocomplete="off">
-            <input class="filter-bar__input fp-date" type="text" name="date_to"   value="{{ date_to }}"   placeholder="По дату…" autocomplete="off">
+            <input class="filter-bar__input no-icon fp-date" type="text" name="date_from" value="{{ date_from }}" placeholder="С даты…" autocomplete="off">
+            <input class="filter-bar__input no-icon fp-date" type="text" name="date_to"   value="{{ date_to }}"   placeholder="По дату…" autocomplete="off">
         </div>
         <div style="display:flex;gap:8px;">
             <button class="button button--secondary" type="submit">Найти</button>

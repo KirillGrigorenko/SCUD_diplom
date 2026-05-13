@@ -5,100 +5,89 @@
 
 <div class="list-header">
     <div class="list-header__left">
-        <p class="list-header__sub">Справочник</p>
+        <p class="list-header__sub">Справочник СКУД</p>
         <h1 class="list-header__title">Уровни доступа</h1>
     </div>
-    <button class="button button--primary" onclick="document.getElementById('add-level-form').scrollIntoView({behavior:'smooth'});document.querySelector('[name=name]').focus()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Добавить уровень
-    </button>
 </div>
 
 {% if error %}
 <div class="form-error" style="margin-bottom:16px;">{{ error }}</div>
 {% endif %}
 
-<div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
-    <div class="stat-card">
-        <span class="stat-card__value">{{ levels|length }}</span>
-        <span class="stat-card__label">Всего уровней</span>
-    </div>
-    <div class="stat-card stat-card--success">
-        <span class="stat-card__value">{{ levels|length }}</span>
-        <span class="stat-card__label">Активных</span>
-    </div>
-    <div class="stat-card">
-        <span class="stat-card__value">3</span>
-        <span class="stat-card__label">Зон доступа</span>
-    </div>
-</div>
+<div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
 
-{% if levels %}
-<div class="card" style="margin-bottom:24px;overflow-x:auto;">
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Название</th>
-                <th>Код</th>
-                <th>Зона</th>
-                <th>Описание</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for level in levels %}
-            <tr>
-                <td><strong style="color:#e2e8f0;">{{ level.name }}</strong></td>
-                <td><code class="code-tag">{{ level.code }}</code></td>
-                <td><span class="access-right-zone">{{ level.zone }}</span></td>
-                <td style="color:#64748b;font-size:13px;">{{ level.description|default:"—" }}</td>
-                <td style="text-align:right;">
-                    <form method="post" action="{% url 'access_level_delete' level.pk %}" style="display:inline;" onsubmit="return confirm('Удалить уровень «{{ level.name }}»?')">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-icon-danger" title="Удалить">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                        </button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% else %}
-<div class="empty-state" style="margin-bottom:24px;">
-    <h2>Нет уровней доступа</h2>
-    <p>Добавьте первый уровень с помощью формы ниже.</p>
-</div>
-{% endif %}
+    <!-- Таблица уровней -->
+    <div>
+        {% if levels %}
+        <div class="card" style="overflow-x:auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Код</th>
+                        <th>Зона</th>
+                        <th>Описание</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for level in levels %}
+                    <tr>
+                        <td style="font-weight:600;color:#e2e8f0;">{{ level.name }}</td>
+                        <td><code class="code-tag">{{ level.code }}</code></td>
+                        <td><span class="access-right-zone">{{ level.zone }}</span></td>
+                        <td style="color:#64748b;font-size:13px;max-width:260px;">{{ level.description|default:"—" }}</td>
+                        <td style="text-align:right;">
+                            <form method="post" action="{% url 'access_level_delete' level.pk %}" style="display:inline;" onsubmit="return confirm('Удалить «{{ level.name }}»?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-icon-danger" title="Удалить">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h2>Уровни не добавлены</h2>
+            <p>Создайте первый уровень с помощью формы справа.</p>
+        </div>
+        {% endif %}
+    </div>
 
-<!-- Форма добавления -->
-<div class="card" id="add-level-form">
-    <h2 style="font-size:16px;font-weight:600;margin-bottom:20px;color:#e2e8f0;">Новый уровень доступа</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="edit-fields">
-            <label class="input-label">
-                <span class="input-label__text">Название <span style="color:#ef4444">*</span></span>
-                <input class="input" type="text" name="name" placeholder="Например: Высокий">
-            </label>
-            <label class="input-label">
-                <span class="input-label__text">Код <span style="color:#ef4444">*</span></span>
-                <input class="input" type="text" name="code" placeholder="high / medium / low">
-            </label>
-            <label class="input-label">
-                <span class="input-label__text">Зона <span style="color:#ef4444">*</span></span>
-                <input class="input" type="text" name="zone" placeholder="server / main / restricted">
-            </label>
-            <label class="input-label">
-                <span class="input-label__text">Описание</span>
-                <input class="input" type="text" name="description" placeholder="Необязательно">
-            </label>
-        </div>
-        <div class="form-actions" style="margin-top:20px;">
-            <button class="button button--primary" type="submit">Создать уровень</button>
-        </div>
-    </form>
+    <!-- Форма справа -->
+    <div class="card" style="position:sticky;top:80px;">
+        <p style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--primary);margin-bottom:12px;">Новый уровень</p>
+        <form method="post">
+            {% csrf_token %}
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <label class="input-label">
+                    <span class="input-label__text">Название <span style="color:#ef4444">*</span></span>
+                    <input class="input" type="text" name="name" placeholder="Высокий">
+                </label>
+                <label class="input-label">
+                    <span class="input-label__text">Код <span style="color:#ef4444">*</span></span>
+                    <input class="input" type="text" name="code" placeholder="high">
+                </label>
+                <label class="input-label">
+                    <span class="input-label__text">Зона <span style="color:#ef4444">*</span></span>
+                    <input class="input" type="text" name="zone" placeholder="server">
+                </label>
+                <label class="input-label">
+                    <span class="input-label__text">Описание</span>
+                    <input class="input" type="text" name="description" placeholder="Необязательно">
+                </label>
+                <button class="button button--primary" type="submit" style="margin-top:4px;width:100%;justify-content:center;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Создать
+                </button>
+            </div>
+        </form>
+    </div>
+
 </div>
 
 {% endblock %}
