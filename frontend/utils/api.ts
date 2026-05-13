@@ -118,3 +118,55 @@ export async function getDepartments(): Promise<any[]> {
   if (!response.ok) return [];
   return response.json();
 }
+
+export async function loginWithFace(
+  imageBlob: Blob,
+  username: string,
+  zone: string = 'main',
+  cameraSource: 'laptop' | 'external' = 'laptop',
+): Promise<{ decision: 'allowed' | 'warning' | 'denied'; message: string; confidence?: number; error?: string }> {
+  const form = new FormData();
+  form.append('image', imageBlob, 'face.jpg');
+  form.append('username', username);
+  form.append('zone', zone);
+  form.append('camera_source', cameraSource);
+  try {
+    const response = await fetch(`${API}/auth/login/face/`, {
+      method: 'POST',
+      credentials: 'include',
+      body: form,
+    });
+    const json = await response.json().catch(() => null);
+    if (response.status === 404) return { decision: 'denied', message: json?.error ?? 'Сотрудник не найден' };
+    if (response.status === 403) return { decision: 'denied', message: json?.message ?? 'Доступ запрещён', confidence: json?.confidence };
+    if (!response.ok) return { decision: 'denied', message: json?.error ?? 'Ошибка сервера' };
+    return { decision: json.decision, message: json.message, confidence: json.confidence };
+  } catch {
+    return { decision: 'denied', message: 'Сервер недоступен' };
+  }
+}
+
+export async function registerBiometric(
+  employeeId: number,
+  imageBlob: Blob,
+): Promise<{ success: boolean; registeredAt?: string; error?: string }> {
+  const form = new FormData();
+  form.append('employee_id', String(employeeId));
+  form.append('image', imageBlob, 'face.jpg');
+  const response = await fetch(`${API}/biometric/register/`, {
+    method: 'POST',
+    credentials: 'include',
+    body: form,
+  });
+  const json = await response.json().catch(() => null);
+  if (!response.ok) return { success: false, error: json?.error ?? 'Ошибка регистрации' };
+  return { success: true, registeredAt: json.registered_at };
+}
+
+export async function getBiometricStatus(
+  employeeId: number,
+): Promise<{ registered: boolean; registered_at: string | null } | null> {
+  const response = await fetch(`${API}/biometric/${employeeId}/status/`, { credentials: 'include' });
+  if (!response.ok) return null;
+  return response.json();
+}

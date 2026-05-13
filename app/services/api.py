@@ -13,8 +13,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
-from .models import AccessHistory, Department, Employee, EmployeeCard, Position
+from .models import AccessHistory, BiometricData, Department, Employee, EmployeeCard, Position
 from .serializers import EmployeeSerializer
+from .face_stub import detect_face, get_face_hash
+from .mes_client import make_decision
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -260,7 +262,7 @@ class AllHistoryAPIView(APIView):
             )
 
         result_f = request.query_params.get('result', '').strip()
-        if result_f in ('allowed', 'denied'):
+        if result_f in ('allowed', 'denied', 'warning'):
             qs = qs.filter(result=result_f)
 
         date_from = request.query_params.get('date_from', '').strip()
@@ -282,6 +284,8 @@ class AllHistoryAPIView(APIView):
                 'access_point': h.access_point,
                 'result': h.result,
                 'method': h.method,
+                'camera_source': h.camera_source,
+                'confidence': h.confidence,
             }
             for h in qs
         ]
@@ -306,7 +310,113 @@ class EmployeeHistoryAPIView(APIView):
                 'access_point': h.access_point,
                 'result': h.result,
                 'method': h.method,
+                'camera_source': h.camera_source,
+                'confidence': h.confidence,
             }
             for h in history
         ]
         return Response(data)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class BiometricLoginAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        username = (request.data.get('username') or '').strip()
+        zone = (request.data.get('zone') or 'main').strip()
+        camera_source = (request.data.get('camera_source') or 'laptop').strip()
+        image_file = request.FILES.get('image')
+
+        if not username:
+            return Response({'error': 'Укажите имя пользователя.'}, status=400)
+        if not image_file:
+            return Response({'error': 'Изображение не передано.'}, status=400)
+
+        try:
+            user = User.objects.get(username=username)
+            employee = user.employee
+        except (User.DoesNotExist, Employee.DoesNotExist):
+            return Response({'error': 'Сотрудник не найден.'}, status=404)
+
+        image_bytes = image_file.read()
+        confidence = detect_face(image_bytes, employee)
+        mes_result = make_decision(employee, confidence, zone)
+        decision = mes_result['decision']
+
+        log_result = decision  # 'allowed' / 'warning' / 'denied'
+        AccessHistory.objects.create(
+            employee=employee,
+            access_point=f'{zone} ({camera_source})',
+            result=log_result,
+            method='biometric',
+            camera_source=camera_source,
+            confidence=confidence,
+        )
+
+        if decision in ('allowed', 'warning'):
+            login(request, user)
+            request.session.set_expiry(0)
+            return Response({
+                'decision': decision,
+                'message': mes_result['message'],
+                'confidence': confidence,
+            })
+
+        return Response({
+            'decision': 'denied',
+            'message': mes_result['message'],
+            'confidence': confidence,
+        }, status=403)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class BiometricRegisterAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        if not hasattr(request.user, 'administrator'):
+            return Response({'error': 'Нет доступа'}, status=403)
+
+        employee_id = request.data.get('employee_id')
+        image_file = request.FILES.get('image')
+
+        if not employee_id or not image_file:
+            return Response({'error': 'Передайте employee_id и image.'}, status=400)
+
+        employee = get_object_or_404(Employee, pk=employee_id)
+        image_bytes = image_file.read()
+        face_hash = get_face_hash(image_bytes)
+
+        from django.utils import timezone
+        bio, _ = BiometricData.objects.get_or_create(employee=employee)
+        bio.face_hash = face_hash
+        bio.face_registered_at = timezone.now().date()
+        bio.status = True
+        bio.save()
+
+        return Response({'status': 'registered', 'registered_at': bio.face_registered_at.isoformat()})
+
+
+class BiometricStatusAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        employee = get_object_or_404(Employee, pk=pk)
+        user = request.user
+        is_admin = hasattr(user, 'administrator') or user.is_staff or user.is_superuser
+        is_self = hasattr(user, 'employee') and user.employee.id == pk
+        if not is_admin and not is_self:
+            return Response({'error': 'Нет доступа'}, status=403)
+
+        try:
+            bio = employee.biometricdata
+            registered = bool(bio.face_hash and bio.status)
+            registered_at = bio.face_registered_at.isoformat() if bio.face_registered_at else None
+        except BiometricData.DoesNotExist:
+            registered = False
+            registered_at = None
+
+        return Response({'registered': registered, 'registered_at': registered_at})

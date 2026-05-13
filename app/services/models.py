@@ -152,6 +152,11 @@ class AccessHistory(models.Model):
     RESULT_CHOICES = [
         ('allowed', 'Разрешён'),
         ('denied', 'Запрещён'),
+        ('warning', 'Предупреждение'),
+    ]
+    CAMERA_CHOICES = [
+        ('laptop', 'Ноутбук'),
+        ('external', 'Камера УК'),
     ]
 
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name='Сотрудник')
@@ -159,6 +164,8 @@ class AccessHistory(models.Model):
     access_point = models.CharField(max_length=200, verbose_name='Точка доступа')
     result = models.CharField(max_length=20, choices=RESULT_CHOICES, verbose_name='Результат')
     method = models.CharField(max_length=20, choices=METHOD_CHOICES, verbose_name='Способ входа')
+    camera_source = models.CharField(max_length=20, choices=CAMERA_CHOICES, null=True, blank=True, verbose_name='Источник камеры')
+    confidence = models.IntegerField(null=True, blank=True, verbose_name='Уверенность ИИ (%)')
 
     class Meta:
         verbose_name = 'История проходов'

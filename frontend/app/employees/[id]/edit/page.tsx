@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getEmployee, getPositions, updateEmployee } from '../../../../../utils/api';
+import { getEmployee, getPositions, updateEmployee, getBiometricStatus, registerBiometric } from '../../../../../utils/api';
+import FaceCapture, { CameraSource } from '../../../../../components/FaceCapture';
 
 const COUNTRIES = [
   'Россия','Беларусь','Казахстан','Украина','Узбекистан','Таджикистан','Кыргызстан',
@@ -30,6 +31,14 @@ export default function EmployeeEditPage() {
   const [positions, setPositions] = useState<any[]>([]);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
+  // биометрия
+  const [bioRegistered, setBioRegistered] = useState(false);
+  const [bioRegisteredAt, setBioRegisteredAt] = useState<string | null>(null);
+  const [bioCapture, setBioCapture] = useState<{ blob: Blob; source: CameraSource } | null>(null);
+  const [bioSaving, setBioSaving] = useState(false);
+  const [bioMsg, setBioMsg] = useState('');
+  const [bioError, setBioError] = useState('');
+
   const [form, setForm] = useState({
     last_name: '', first_name: '', middle_name: '',
     hire_date: '', status: 'active',
@@ -40,7 +49,7 @@ export default function EmployeeEditPage() {
 
   useEffect(() => {
     if (!id) return;
-    Promise.all([getEmployee(id), getPositions()]).then(([emp, pos]) => {
+    Promise.all([getEmployee(id), getPositions(), getBiometricStatus(Number(id))]).then(([emp, pos, bio]) => {
       if (emp) {
         setForm({
           last_name: emp.last_name ?? '',
@@ -58,10 +67,31 @@ export default function EmployeeEditPage() {
         });
         setPhotoPreview(emp.photo_url ?? '');
       }
+      if (bio) {
+        setBioRegistered(bio.registered);
+        setBioRegisteredAt(bio.registered_at);
+      }
       setPositions(pos);
       setLoading(false);
     });
   }, [id]);
+
+  async function handleBioRegister() {
+    if (!bioCapture || !id) return;
+    setBioSaving(true);
+    setBioError('');
+    setBioMsg('');
+    const result = await registerBiometric(Number(id), bioCapture.blob);
+    setBioSaving(false);
+    if (result.success) {
+      setBioRegistered(true);
+      setBioRegisteredAt(result.registeredAt ?? null);
+      setBioMsg('Биометрия зарегистрирована успешно.');
+      setBioCapture(null);
+    } else {
+      setBioError(result.error ?? 'Ошибка регистрации');
+    }
+  }
 
   function set(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -230,6 +260,49 @@ export default function EmployeeEditPage() {
                     <input className={inputCls} value={form.address} onChange={e => set('address', e.target.value)} />
                   </label>
                 </div>
+              </section>
+
+              {/* Биометрия */}
+              <section className="rounded-2xl border border-slate-700 bg-slate-950/70 p-5">
+                <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-slate-400">Биометрия (лицо)</h2>
+
+                <div className="mb-4 flex items-center gap-3">
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
+                    bioRegistered ? 'bg-emerald-500/15 text-emerald-400' : 'bg-slate-700 text-slate-400'
+                  }`}>
+                    <span className={`h-2 w-2 rounded-full ${bioRegistered ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                    {bioRegistered ? 'Зарегистрировано' : 'Не зарегистрировано'}
+                  </span>
+                  {bioRegisteredAt && (
+                    <span className="text-xs text-slate-500">
+                      {new Date(bioRegisteredAt).toLocaleDateString('ru-RU')}
+                    </span>
+                  )}
+                </div>
+
+                {bioMsg && (
+                  <p className="mb-3 text-xs text-emerald-400">{bioMsg}</p>
+                )}
+                {bioError && (
+                  <p className="mb-3 text-xs text-rose-400">{bioError}</p>
+                )}
+
+                <FaceCapture
+                  disabled={bioSaving}
+                  onCapture={(blob, source) => setBioCapture({ blob, source })}
+                  onError={(msg) => setBioError(msg)}
+                />
+
+                {bioCapture && (
+                  <button
+                    type="button"
+                    onClick={handleBioRegister}
+                    disabled={bioSaving}
+                    className="mt-3 w-full rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 transition"
+                  >
+                    {bioSaving ? 'Регистрируем…' : bioRegistered ? 'Перерегистрировать лицо' : 'Зарегистрировать лицо'}
+                  </button>
+                )}
               </section>
 
               <div className="flex justify-end gap-3">

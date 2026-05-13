@@ -6,11 +6,13 @@ from .api import (
     EmployeeCreateAPIView, EmployeeUpdateAPIView,
     EmployeeHistoryAPIView, AllHistoryAPIView,
     PositionListAPIView, DepartmentListAPIView,
+    BiometricLoginAPIView, BiometricRegisterAPIView, BiometricStatusAPIView,
 )
 
 urlpatterns = [
     path('auth/login/', LoginAPIView.as_view(), name='api_login'),
     path('auth/logout/', LogoutAPIView.as_view(), name='api_logout'),
+    path('auth/login/face/', BiometricLoginAPIView.as_view(), name='api_login_face'),
     path('auth/me/', MeAPIView.as_view(), name='api_me'),
     path('employees/', EmployeeListAPIView.as_view(), name='api_employees'),
     path('employees/create/', EmployeeCreateAPIView.as_view(), name='api_employee_create'),
@@ -20,4 +22,6 @@ urlpatterns = [
     path('history/', AllHistoryAPIView.as_view(), name='api_history'),
     path('positions/', PositionListAPIView.as_view(), name='api_positions'),
     path('departments/', DepartmentListAPIView.as_view(), name='api_departments'),
+    path('biometric/register/', BiometricRegisterAPIView.as_view(), name='api_biometric_register'),
+    path('biometric/<int:pk>/status/', BiometricStatusAPIView.as_view(), name='api_biometric_status'),
 ]
