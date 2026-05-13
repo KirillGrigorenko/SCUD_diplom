@@ -221,6 +221,7 @@ def employee_edit(request, pk):
             card.save()
             return redirect('employee_detail', pk=pk)
 
+    bio = getattr(employee, 'biometricdata', None)
     return render(request, 'services/employee_edit.html', {
         'employee': employee,
         'card': getattr(employee, 'employeecard', None),
@@ -229,6 +230,8 @@ def employee_edit(request, pk):
         'departments': Department.objects.all(),
         'countries': COUNTRIES,
         'error': error,
+        'bio_registered': bool(bio and bio.face_hash and bio.status),
+        'bio_registered_at': bio.face_registered_at if bio and bio.face_hash and bio.status else None,
     })
 
 
@@ -300,6 +303,22 @@ def employee_create(request):
                 card.snils = snils
                 card.inn = inn
                 card.save()
+
+            face_b64 = request.POST.get('face_b64', '').strip()
+            if face_b64:
+                try:
+                    import base64 as _b64
+                    from django.utils import timezone as _tz
+                    from .face_stub import get_face_hash
+                    from .models import BiometricData
+                    image_bytes = _b64.b64decode(face_b64)
+                    bio, _ = BiometricData.objects.get_or_create(employee=employee)
+                    bio.face_hash = get_face_hash(image_bytes)
+                    bio.face_registered_at = _tz.now().date()
+                    bio.status = True
+                    bio.save()
+                except Exception:
+                    pass  # биометрия необязательна, сотрудник уже создан
 
             if not error:
                 return redirect('employee_detail', pk=employee.pk)

@@ -1,0 +1,164 @@
+{# Виджет захвата лица. Требует: widget_id (уникальный префикс), bioOnCapture(blob) в JS страницы #}
+<div id="{{ widget_id }}-wrap">
+
+    <!-- Выбор камеры -->
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button type="button"
+            onclick="bioSelectCam('{{ widget_id }}','laptop')"
+            id="{{ widget_id }}-cam-laptop"
+            style="flex:1;padding:6px;font-size:12px;font-weight:500;border-radius:8px;border:none;cursor:pointer;background:#0ea5e9;color:#fff;transition:background .2s;">
+            Ноутбук
+        </button>
+        <button type="button"
+            onclick="bioSelectCam('{{ widget_id }}','external')"
+            id="{{ widget_id }}-cam-external"
+            style="flex:1;padding:6px;font-size:12px;font-weight:500;border-radius:8px;border:1px solid #1e293b;cursor:pointer;background:transparent;color:#64748b;transition:background .2s;">
+            Камера УК
+        </button>
+    </div>
+
+    <!-- Область камеры -->
+    <div style="position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:4/3;max-height:260px;margin-bottom:10px;">
+        <video id="{{ widget_id }}-video" autoplay playsinline muted
+            style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+        <img  id="{{ widget_id }}-preview"
+            style="display:none;width:100%;height:100%;object-fit:cover;">
+        <canvas id="{{ widget_id }}-canvas" style="display:none;"></canvas>
+
+        <!-- Заглушка внешней камеры -->
+        <div id="{{ widget_id }}-stub"
+            style="display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#475569;background:#0b0f1a;">
+            <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="opacity:.35">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+            </svg>
+            <span style="font-size:12px;font-weight:500;">Камера УК не подключена</span>
+        </div>
+
+        <!-- Прицел -->
+        <div id="{{ widget_id }}-reticle"
+            style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+            <div style="width:100px;height:130px;border-radius:50%;border:2px solid rgba(255,255,255,.35);"></div>
+        </div>
+
+        <!-- Загрузка -->
+        <div id="{{ widget_id }}-loading"
+            style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;color:#94a3b8;font-size:13px;">
+            Запуск камеры…
+        </div>
+    </div>
+
+    <!-- Кнопки -->
+    <div style="display:flex;gap:8px;">
+        <button type="button" id="{{ widget_id }}-btn-capture"
+            onclick="bioCapture('{{ widget_id }}')" disabled
+            style="flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:#0ea5e9;color:#fff;opacity:.5;transition:opacity .2s;">
+            Сделать фото
+        </button>
+        <button type="button" id="{{ widget_id }}-btn-retake"
+            onclick="bioRetake('{{ widget_id }}')"
+            style="display:none;flex:1;padding:8px;border-radius:8px;border:1px solid #1e293b;cursor:pointer;font-size:12px;font-weight:500;background:transparent;color:#94a3b8;">
+            Переснять
+        </button>
+    </div>
+</div>
+
+<script>
+(function(){
+    var _streams = {};
+    var _cams = {};
+
+    function startCam(id) {
+        var loading = document.getElementById(id+'-loading');
+        loading.style.display = 'flex';
+        navigator.mediaDevices.getUserMedia({video:true})
+        .then(function(stream){
+            _streams[id] = stream;
+            var v = document.getElementById(id+'-video');
+            v.srcObject = stream;
+            v.onloadedmetadata = function(){
+                loading.style.display = 'none';
+                var btn = document.getElementById(id+'-btn-capture');
+                btn.disabled = false; btn.style.opacity = '1';
+            };
+        })
+        .catch(function(){
+            loading.style.display = 'none';
+        });
+    }
+
+    function stopCam(id) {
+        if (_streams[id]) {
+            _streams[id].getTracks().forEach(function(t){ t.stop(); });
+            delete _streams[id];
+        }
+        var btn = document.getElementById(id+'-btn-capture');
+        if (btn) { btn.disabled = true; btn.style.opacity = '.5'; }
+    }
+
+    window.bioSelectCam = function(id, cam) {
+        _cams[id] = cam;
+        var lBtn = document.getElementById(id+'-cam-laptop');
+        var eBtn = document.getElementById(id+'-cam-external');
+        lBtn.style.background = cam==='laptop' ? '#0ea5e9' : 'transparent';
+        lBtn.style.color      = cam==='laptop' ? '#fff'    : '#64748b';
+        lBtn.style.border     = cam==='laptop' ? 'none'    : '1px solid #1e293b';
+        eBtn.style.background = cam==='external' ? '#0ea5e9' : 'transparent';
+        eBtn.style.color      = cam==='external' ? '#fff'    : '#64748b';
+        eBtn.style.border     = cam==='external' ? 'none'    : '1px solid #1e293b';
+
+        // сбросить фото
+        document.getElementById(id+'-preview').style.display = 'none';
+        document.getElementById(id+'-btn-retake').style.display = 'none';
+
+        if (cam === 'laptop') {
+            document.getElementById(id+'-stub').style.display = 'none';
+            document.getElementById(id+'-video').style.display = 'block';
+            document.getElementById(id+'-reticle').style.display = 'flex';
+            document.getElementById(id+'-btn-capture').style.display = '';
+            stopCam(id); startCam(id);
+        } else {
+            stopCam(id);
+            document.getElementById(id+'-video').style.display = 'none';
+            document.getElementById(id+'-reticle').style.display = 'none';
+            document.getElementById(id+'-btn-capture').style.display = 'none';
+            var stub = document.getElementById(id+'-stub');
+            stub.style.display = 'flex';
+        }
+    };
+
+    window.bioCapture = function(id) {
+        var v = document.getElementById(id+'-video');
+        var c = document.getElementById(id+'-canvas');
+        c.width = v.videoWidth; c.height = v.videoHeight;
+        c.getContext('2d').drawImage(v, 0, 0);
+        c.toBlob(function(blob){
+            var url = URL.createObjectURL(blob);
+            var prev = document.getElementById(id+'-preview');
+            prev.src = url; prev.style.display = 'block';
+            document.getElementById(id+'-video').style.display = 'none';
+            document.getElementById(id+'-reticle').style.display = 'none';
+            document.getElementById(id+'-btn-capture').style.display = 'none';
+            document.getElementById(id+'-btn-retake').style.display = '';
+            stopCam(id);
+            if (typeof bioOnCapture === 'function') bioOnCapture(blob);
+        }, 'image/jpeg', 0.92);
+    };
+
+    window.bioRetake = function(id) {
+        document.getElementById(id+'-preview').style.display = 'none';
+        document.getElementById(id+'-video').style.display = 'block';
+        document.getElementById(id+'-reticle').style.display = 'flex';
+        document.getElementById(id+'-btn-capture').style.display = '';
+        document.getElementById(id+'-btn-retake').style.display = 'none';
+        startCam(id);
+    };
+
+    // автозапуск ноутбука
+    document.addEventListener('DOMContentLoaded', function(){
+        var id = '{{ widget_id }}';
+        _cams[id] = 'laptop';
+        startCam(id);
+    });
+}());
+</script>
