@@ -233,28 +233,25 @@ class EmployeeCreateAPIView(APIView):
             'Дополнительно можно передать данные карточки (паспорт, должность, образование). '
             'Только для администраторов.'
         ),
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['username', 'password', 'last_name', 'first_name', 'hire_date'],
-            properties={
-                'username': openapi.Schema(type=openapi.TYPE_STRING, description='Логин', example='ivanov_iv'),
-                'password': openapi.Schema(type=openapi.TYPE_STRING, description='Пароль'),
-                'last_name': openapi.Schema(type=openapi.TYPE_STRING, description='Фамилия', example='Иванов'),
-                'first_name': openapi.Schema(type=openapi.TYPE_STRING, description='Имя', example='Иван'),
-                'middle_name': openapi.Schema(type=openapi.TYPE_STRING, description='Отчество', example='Иванович'),
-                'hire_date': openapi.Schema(type=openapi.TYPE_STRING, format='date', description='Дата найма', example='2024-01-15'),
-                'fire_date': openapi.Schema(type=openapi.TYPE_STRING, format='date', description='Дата увольнения (если уволен)'),
-                'status': openapi.Schema(type=openapi.TYPE_STRING, enum=['active', 'fired', 'blocked'], description='Статус', default='active'),
-                'photo': openapi.Schema(type=openapi.TYPE_FILE, description='Фото сотрудника (JPEG/PNG)'),
-                'inn': openapi.Schema(type=openapi.TYPE_STRING, description='ИНН (ровно 12 цифр)', example='123456789012'),
-                'position_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID должности'),
-                'passport_series': openapi.Schema(type=openapi.TYPE_STRING, description='Серия паспорта', example='4521'),
-                'passport_number': openapi.Schema(type=openapi.TYPE_STRING, description='Номер паспорта', example='123456'),
-                'citizenship': openapi.Schema(type=openapi.TYPE_STRING, description='Гражданство', example='Россия'),
-                'address': openapi.Schema(type=openapi.TYPE_STRING, description='Адрес прописки'),
-                'snils': openapi.Schema(type=openapi.TYPE_STRING, description='СНИЛС', example='123-456-789 00'),
-            },
-        ),
+        manual_parameters=[
+            openapi.Parameter('username', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True, description='Логин'),
+            openapi.Parameter('password', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True, description='Пароль'),
+            openapi.Parameter('last_name', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True, description='Фамилия'),
+            openapi.Parameter('first_name', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True, description='Имя'),
+            openapi.Parameter('middle_name', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Отчество'),
+            openapi.Parameter('hire_date', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True, description='Дата найма (YYYY-MM-DD)'),
+            openapi.Parameter('fire_date', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Дата увольнения'),
+            openapi.Parameter('status', openapi.IN_FORM, type=openapi.TYPE_STRING, enum=['active', 'fired', 'blocked'], description='Статус'),
+            openapi.Parameter('photo', openapi.IN_FORM, type=openapi.TYPE_FILE, description='Фото сотрудника'),
+            openapi.Parameter('inn', openapi.IN_FORM, type=openapi.TYPE_STRING, description='ИНН (12 цифр)'),
+            openapi.Parameter('position_id', openapi.IN_FORM, type=openapi.TYPE_INTEGER, description='ID должности'),
+            openapi.Parameter('passport_series', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Серия паспорта'),
+            openapi.Parameter('passport_number', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Номер паспорта'),
+            openapi.Parameter('citizenship', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Гражданство'),
+            openapi.Parameter('address', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Адрес'),
+            openapi.Parameter('snils', openapi.IN_FORM, type=openapi.TYPE_STRING, description='СНИЛС'),
+        ],
+        consumes=['multipart/form-data'],
         responses={
             201: EmployeeSerializer(),
             400: _resp_400,
@@ -339,24 +336,22 @@ class EmployeeUpdateAPIView(APIView):
             'Частичное обновление (PATCH): передавайте только те поля, которые нужно изменить. '
             'Поддерживает загрузку нового фото. Только для администраторов.'
         ),
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'last_name': openapi.Schema(type=openapi.TYPE_STRING, description='Фамилия'),
-                'first_name': openapi.Schema(type=openapi.TYPE_STRING, description='Имя'),
-                'middle_name': openapi.Schema(type=openapi.TYPE_STRING, description='Отчество'),
-                'hire_date': openapi.Schema(type=openapi.TYPE_STRING, format='date', description='Дата найма'),
-                'status': openapi.Schema(type=openapi.TYPE_STRING, enum=['active', 'fired', 'blocked'], description='Статус'),
-                'photo': openapi.Schema(type=openapi.TYPE_FILE, description='Новое фото'),
-                'inn': openapi.Schema(type=openapi.TYPE_STRING, description='ИНН (ровно 12 цифр)'),
-                'position_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID должности'),
-                'passport_series': openapi.Schema(type=openapi.TYPE_STRING, description='Серия паспорта'),
-                'passport_number': openapi.Schema(type=openapi.TYPE_STRING, description='Номер паспорта'),
-                'citizenship': openapi.Schema(type=openapi.TYPE_STRING, description='Гражданство'),
-                'address': openapi.Schema(type=openapi.TYPE_STRING, description='Адрес'),
-                'snils': openapi.Schema(type=openapi.TYPE_STRING, description='СНИЛС'),
-            },
-        ),
+        manual_parameters=[
+            openapi.Parameter('last_name', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Фамилия'),
+            openapi.Parameter('first_name', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Имя'),
+            openapi.Parameter('middle_name', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Отчество'),
+            openapi.Parameter('hire_date', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Дата найма (YYYY-MM-DD)'),
+            openapi.Parameter('status', openapi.IN_FORM, type=openapi.TYPE_STRING, enum=['active', 'fired', 'blocked'], description='Статус'),
+            openapi.Parameter('photo', openapi.IN_FORM, type=openapi.TYPE_FILE, description='Новое фото'),
+            openapi.Parameter('inn', openapi.IN_FORM, type=openapi.TYPE_STRING, description='ИНН (12 цифр)'),
+            openapi.Parameter('position_id', openapi.IN_FORM, type=openapi.TYPE_INTEGER, description='ID должности'),
+            openapi.Parameter('passport_series', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Серия паспорта'),
+            openapi.Parameter('passport_number', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Номер паспорта'),
+            openapi.Parameter('citizenship', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Гражданство'),
+            openapi.Parameter('address', openapi.IN_FORM, type=openapi.TYPE_STRING, description='Адрес'),
+            openapi.Parameter('snils', openapi.IN_FORM, type=openapi.TYPE_STRING, description='СНИЛС'),
+        ],
+        consumes=['multipart/form-data'],
         responses={
             200: EmployeeSerializer(),
             400: _resp_400,
@@ -741,14 +736,11 @@ class BiometricRegisterAPIView(APIView):
             'Одновременно сохраняет фото как отдельный биометрический снимок в MinIO (ключ `bio_<id>`). '
             'Только для администраторов.'
         ),
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['employee_id', 'image'],
-            properties={
-                'employee_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID сотрудника', example=5),
-                'image': openapi.Schema(type=openapi.TYPE_FILE, description='Фото ладони (JPEG/PNG)'),
-            },
-        ),
+        manual_parameters=[
+            openapi.Parameter('employee_id', openapi.IN_FORM, type=openapi.TYPE_INTEGER, required=True, description='ID сотрудника'),
+            openapi.Parameter('image', openapi.IN_FORM, type=openapi.TYPE_FILE, required=True, description='Фото ладони (JPEG/PNG)'),
+        ],
+        consumes=['multipart/form-data'],
         responses={
             200: openapi.Response('Биометрия зарегистрирована', openapi.Schema(
                 type=openapi.TYPE_OBJECT,
