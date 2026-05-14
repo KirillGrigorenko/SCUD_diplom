@@ -28,7 +28,7 @@
 
         <aside class="edit-sidebar">
             <div class="edit-photo-wrap">
-                <img id="photo-preview" class="edit-photo" src="https://via.placeholder.com/460x520/0b0f1a/ffffff?text=Фото" alt="Фото">
+                <img id="photo-preview" class="edit-photo" src="{% static 'img/no-photo.svg' %}" alt="Фото">
                 <label class="edit-photo-btn">
                     <input type="file" name="photo" accept="image/*" id="photo-input" style="display:none">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -213,13 +213,10 @@
 
             <!-- БИОМЕТРИЯ -->
             <div class="edit-section">
-                <h2 class="edit-section__title">Биометрия (лицо) <span style="font-size:11px;font-weight:400;color:#64748b;">— необязательно</span></h2>
-                <p style="font-size:12px;color:#64748b;margin-bottom:14px;">Сфотографируйте сотрудника — биометрия будет сохранена автоматически при создании.</p>
-
-                <input type="hidden" name="face_b64" id="face-b64-input">
-                <div id="bio-create-hint" style="display:none;margin-bottom:10px;color:#34d399;font-size:12px;">Фото готово — будет сохранено при создании сотрудника</div>
-
-                {% include 'services/_bio_capture.html' with widget_id="bio-create" %}
+                <h2 class="edit-section__title">Биометрия ладони</h2>
+                <p style="font-size:13px;color:#64748b;line-height:1.6;">
+                    Биометрия регистрируется после создания сотрудника — откройте страницу редактирования и воспользуйтесь секцией «Биометрия ладони».
+                </p>
             </div>
 
             <div class="form-actions">
@@ -234,18 +231,6 @@
 {% include 'services/_position_modal.html' %}
 
 <script>
-// ---------- биометрия (создание) ----------
-function bioOnCapture(blob) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-        var b64 = e.target.result.split(',')[1];
-        document.getElementById('face-b64-input').value = b64;
-        document.getElementById('bio-create-hint').style.display = 'block';
-    };
-    reader.readAsDataURL(blob);
-}
-// -----------------------------------------
-
 document.getElementById('photo-input').addEventListener('change', function () {
     var file = this.files[0];
     if (!file) return;
@@ -261,7 +246,7 @@ document.getElementById('photo-input').addEventListener('change', function () {
     var form = innInput ? innInput.closest('form') : null;
 
     function validateInn() {
-        var val = innInput.value.trim();
+        var val = innInput.value.replace(/\s/g, '');
         if (val === '') { innError.style.display = 'none'; return true; }
         if (/^\d{12}$/.test(val)) { innError.style.display = 'none'; return true; }
         innError.style.display = 'block';
@@ -269,7 +254,6 @@ document.getElementById('photo-input').addEventListener('change', function () {
     }
 
     if (innInput) {
-        innInput.addEventListener('input', validateInn);
         innInput.addEventListener('blur', validateInn);
     }
 
@@ -278,7 +262,12 @@ document.getElementById('photo-input').addEventListener('change', function () {
             if (!validateInn()) {
                 e.preventDefault();
                 innInput.focus();
+                return;
             }
+            // стрипаем форматирование перед отправкой
+            innInput.value = innInput.value.replace(/\s/g, '');
+            var snils = document.getElementById('f-snils');
+            if (snils) snils.value = snils.value; // СНИЛС хранится в форматированном виде
         });
     }
 }());
@@ -349,7 +338,7 @@ document.getElementById('photo-input').addEventListener('change', function () {
         document.getElementById('f-passport-series').value = randDigits(4);
         document.getElementById('f-passport-number').value = randDigits(6);
         document.getElementById('f-snils').value           = randSnils();
-        document.getElementById('f-inn').value             = randDigits(12);
+        document.getElementById('f-inn').value             = window.applyInnMask(randDigits(12));
         document.getElementById('f-address').value         = 'г. ' + city + ', ул. ' + street + ', д. ' + rndInt(1,120) + ', кв. ' + rndInt(1,200);
         document.getElementById('f-education-year').value  = rndInt(1995, 2020);
         document.getElementById('f-diploma-number').value  = randDigits(7);

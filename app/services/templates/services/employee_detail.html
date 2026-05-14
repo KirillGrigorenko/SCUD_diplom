@@ -1,4 +1,5 @@
 {% extends 'services/base.html' %}
+{% load custom_filters %}
 {% block title %}{{ employee.full_name }}{% endblock %}
 
 {% block content %}
@@ -6,10 +7,12 @@
 <!-- Шапка страницы -->
 <div class="emp-detail-header">
     <div>
+        {% if request.user.administrator or request.user.is_staff or request.user.is_superuser %}
         <a href="{% url 'employee_list' %}" class="emp-detail-header__back">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             Все сотрудники
         </a>
+        {% endif %}
         <h1 style="font-size:28px;font-weight:700;letter-spacing:-0.02em;margin-bottom:12px;">{{ employee.full_name }}</h1>
         <div class="pill-list">
             <span class="pill {% if employee.status == 'active' %}pill--success{% elif employee.status == 'blocked' %}pill--warning{% else %}pill--danger{% endif %}">
@@ -21,7 +24,7 @@
             {% endif %}
         </div>
     </div>
-    {% if request.user.administrator %}
+    {% if request.user.administrator or request.user.is_staff or request.user.is_superuser %}
     <div class="emp-detail-header__actions">
         <button type="button" class="button button--danger" onclick="confirmDelete()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
@@ -154,7 +157,7 @@
                 <div class="access-right-row">
                     <div class="access-right-info">
                         <span class="access-right-level">{{ ar.access_level.name }}</span>
-                        <span class="access-right-zone">{{ ar.access_level.zone }}</span>
+                        {% for z in ar.access_level.zone|split:',' %}<span class="access-right-zone">{{ z }}</span>{% endfor %}
                         {% if ar.expires_at %}
                         <span class="access-right-expires">до {{ ar.expires_at }}</span>
                         {% endif %}
@@ -175,7 +178,7 @@
             <p class="history-card__title">История проходов</p>
             <p class="history-card__subtitle">Последние записи системы контроля доступа</p>
         </div>
-        {% if request.user.administrator %}
+        {% if request.user.administrator or request.user.is_staff or request.user.is_superuser %}
         <a class="button button--outline" style="font-size:13px;padding:8px 14px;" href="{% url 'employee_history_export_csv' employee.id %}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Экспорт CSV
@@ -215,7 +218,7 @@
     {% endif %}
 </div>
 
-{% if request.user.administrator %}
+{% if request.user.administrator or request.user.is_staff or request.user.is_superuser %}
 <form id="delete-form" method="post" action="{% url 'employee_delete' employee.id %}" style="display:none;">
     {% csrf_token %}
 </form>

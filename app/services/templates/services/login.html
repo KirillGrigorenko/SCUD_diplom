@@ -19,7 +19,7 @@
             <button type="button" id="tab-face"
                 onclick="switchTab('face')"
                 style="flex:1;padding:10px;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:background .2s;background:transparent;color:#94a3b8;">
-                По лицу
+                По биометрии
             </button>
         </div>
 
@@ -49,7 +49,7 @@
             </form>
         </div>
 
-        <!-- ======== ВКЛАДКА: ЛИЦО ======== -->
+        <!-- ======== ВКЛАДКА: БИОМЕТРИЯ ======== -->
         <div id="panel-face" style="display:none;">
 
             <div id="face-msg-error" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;font-size:13px;"></div>
@@ -60,65 +60,36 @@
                 <input class="input" type="text" id="face-username" placeholder="Ваш логин" autocomplete="username">
             </label>
 
-            <!-- Выбор камеры -->
-            <div style="display:flex;gap:8px;margin-bottom:12px;">
-                <button type="button" id="cam-laptop" onclick="selectCamera('laptop')"
-                    style="flex:1;padding:7px;font-size:12px;font-weight:500;border-radius:8px;border:none;cursor:pointer;background:#0ea5e9;color:#fff;transition:background .2s;">
-                    Ноутбук
-                </button>
-                <button type="button" id="cam-external" onclick="selectCamera('external')"
-                    style="flex:1;padding:7px;font-size:12px;font-weight:500;border-radius:8px;border:1px solid #1e293b;cursor:pointer;background:transparent;color:#64748b;transition:background .2s;">
-                    Камера УК
-                </button>
-            </div>
-
-            <!-- Область камеры -->
-            <div style="position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:4/3;margin-bottom:12px;">
-                <video id="face-video" autoplay playsinline muted
-                    style="width:100%;height:100%;object-fit:cover;display:block;"></video>
-                <canvas id="face-canvas" style="display:none;"></canvas>
-                <img id="face-preview" style="display:none;width:100%;height:100%;object-fit:cover;">
-
-                <!-- Заглушка внешней камеры -->
-                <div id="cam-stub" style="display:none;position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#475569;">
-                    <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="opacity:.4">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+            <!-- Превью фото -->
+            <div style="position:relative;border-radius:12px;overflow:hidden;background:#0b0f1a;aspect-ratio:4/3;margin-bottom:12px;border:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;">
+                <div id="face-idle" style="display:flex;flex-direction:column;align-items:center;gap:10px;color:#475569;">
+                    <svg width="80" height="96" viewBox="0 0 80 96" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M28 52 L26 20 Q26 14 32 14 Q38 14 38 20 L38 44"/>
+                        <path d="M38 44 L38 12 Q38 6 44 6 Q50 6 50 12 L50 44"/>
+                        <path d="M50 44 L50 16 Q50 10 56 10 Q62 10 62 16 L62 44"/>
+                        <path d="M62 44 L62 26 Q62 20 67 22 Q72 24 70 34 L68 52"/>
+                        <path d="M28 52 Q18 46 18 36 L18 30 Q18 24 22 24 Q26 24 28 30 L28 52"/>
+                        <path d="M28 52 Q24 64 26 74 Q30 88 44 90 Q58 90 64 78 Q68 68 68 52 L62 44 L50 44 L38 44 L28 52Z"/>
                     </svg>
-                    <span style="font-size:13px;font-weight:500;">Камера УК не подключена</span>
-                    <span style="font-size:11px;">Функция будет доступна после подключения</span>
+                    <span style="font-size:12px;">Загрузите фото ладони</span>
                 </div>
-
-                <!-- Прицел -->
-                <div id="face-reticle" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
-                    <div style="width:120px;height:150px;border-radius:50%;border:2px solid rgba(255,255,255,.4);"></div>
-                </div>
-
-                <!-- Загрузка камеры -->
-                <div id="cam-loading" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;color:#94a3b8;font-size:13px;">
-                    Запуск камеры…
-                </div>
+                <img id="face-preview" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
             </div>
 
-            <!-- Кнопки -->
-            <div style="display:flex;gap:8px;margin-bottom:16px;">
-                <button type="button" id="btn-capture" onclick="captureFrame()" disabled
-                    style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:#0ea5e9;color:#fff;transition:opacity .2s;opacity:.5;">
-                    Сделать фото
-                </button>
-                <button type="button" id="btn-retake" onclick="retakePhoto()"
-                    style="display:none;flex:1;padding:10px;border-radius:10px;border:1px solid #1e293b;cursor:pointer;font-size:13px;font-weight:500;background:transparent;color:#94a3b8;">
-                    Переснять
-                </button>
-            </div>
-
-            <div id="face-ready-hint" style="display:none;color:#34d399;font-size:12px;margin-bottom:12px;">
-                Фото готово — нажмите «Войти по лицу»
-            </div>
+            <!-- Выбор файла -->
+            <label style="display:block;cursor:pointer;margin-bottom:16px;">
+                <input type="file" id="face-file" accept="image/*" style="display:none;">
+                <div id="face-file-btn"
+                    style="width:100%;padding:9px;border-radius:8px;border:1px dashed rgba(255,255,255,.2);font-size:12px;font-weight:500;color:#94a3b8;text-align:center;transition:border-color .2s,color .2s;cursor:pointer;"
+                    onmouseover="this.style.borderColor='rgba(14,165,233,.5)';this.style.color='#38bdf8'"
+                    onmouseout="this.style.borderColor='rgba(255,255,255,.2)';this.style.color='#94a3b8'">
+                    Выбрать файл
+                </div>
+            </label>
 
             <button type="button" id="btn-face-submit" onclick="submitFace()" disabled
                 style="width:100%;padding:12px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-weight:600;background:#0ea5e9;color:#fff;opacity:.5;transition:opacity .2s;">
-                Войти по лицу
+                Войти по биометрии
             </button>
         </div>
 
@@ -129,136 +100,36 @@
 <script>
 (function () {
     var currentTab = 'password';
-    var currentCamera = 'laptop';
-    var videoStream = null;
     var capturedBlob = null;
 
     window.switchTab = function (tab) {
-        currentTab = tab;
         document.getElementById('panel-password').style.display = tab === 'password' ? '' : 'none';
-        document.getElementById('panel-face').style.display = tab === 'face' ? '' : 'none';
+        document.getElementById('panel-face').style.display    = tab === 'face'     ? '' : 'none';
         document.getElementById('tab-password').style.background = tab === 'password' ? '#0ea5e9' : 'transparent';
-        document.getElementById('tab-password').style.color = tab === 'password' ? '#fff' : '#94a3b8';
-        document.getElementById('tab-face').style.background = tab === 'face' ? '#0ea5e9' : 'transparent';
-        document.getElementById('tab-face').style.color = tab === 'face' ? '#fff' : '#94a3b8';
-
-        if (tab === 'face' && currentCamera === 'laptop' && !videoStream) {
-            startCamera();
-        }
-        if (tab === 'password') {
-            stopCamera();
-        }
+        document.getElementById('tab-password').style.color     = tab === 'password' ? '#fff' : '#94a3b8';
+        document.getElementById('tab-face').style.background    = tab === 'face'     ? '#0ea5e9' : 'transparent';
+        document.getElementById('tab-face').style.color         = tab === 'face'     ? '#fff'    : '#94a3b8';
     };
 
-    window.selectCamera = function (cam) {
-        currentCamera = cam;
-        var laptopBtn = document.getElementById('cam-laptop');
-        var extBtn = document.getElementById('cam-external');
-        laptopBtn.style.background = cam === 'laptop' ? '#0ea5e9' : 'transparent';
-        laptopBtn.style.color = cam === 'laptop' ? '#fff' : '#64748b';
-        laptopBtn.style.border = cam === 'laptop' ? 'none' : '1px solid #1e293b';
-        extBtn.style.background = cam === 'external' ? '#0ea5e9' : 'transparent';
-        extBtn.style.color = cam === 'external' ? '#fff' : '#64748b';
-        extBtn.style.border = cam === 'external' ? 'none' : '1px solid #1e293b';
-
-        capturedBlob = null;
-        document.getElementById('btn-face-submit').disabled = true;
-        document.getElementById('btn-face-submit').style.opacity = '.5';
-        document.getElementById('face-ready-hint').style.display = 'none';
-
-        if (cam === 'laptop') {
-            document.getElementById('cam-stub').style.display = 'none';
-            document.getElementById('face-video').style.display = 'block';
-            document.getElementById('face-reticle').style.display = 'flex';
-            document.getElementById('btn-capture').style.display = '';
-            document.getElementById('btn-retake').style.display = 'none';
-            document.getElementById('face-preview').style.display = 'none';
-            stopCamera();
-            startCamera();
-        } else {
-            stopCamera();
-            document.getElementById('face-video').style.display = 'none';
-            document.getElementById('face-reticle').style.display = 'none';
-            document.getElementById('face-preview').style.display = 'none';
-            document.getElementById('btn-capture').style.display = 'none';
-            document.getElementById('btn-retake').style.display = 'none';
-            var stub = document.getElementById('cam-stub');
-            stub.style.display = 'flex';
-        }
-    };
-
-    function startCamera() {
-        var loading = document.getElementById('cam-loading');
-        loading.style.display = 'flex';
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(function (stream) {
-                videoStream = stream;
-                var video = document.getElementById('face-video');
-                video.srcObject = stream;
-                video.onloadedmetadata = function () {
-                    loading.style.display = 'none';
-                    var btn = document.getElementById('btn-capture');
-                    btn.disabled = false;
-                    btn.style.opacity = '1';
-                };
-            })
-            .catch(function () {
-                loading.style.display = 'none';
-                showError('Нет доступа к камере ноутбука.');
-            });
-    }
-
-    function stopCamera() {
-        if (videoStream) {
-            videoStream.getTracks().forEach(function (t) { t.stop(); });
-            videoStream = null;
-        }
-        var btn = document.getElementById('btn-capture');
-        if (btn) { btn.disabled = true; btn.style.opacity = '.5'; }
-    }
-
-    window.captureFrame = function () {
-        var video = document.getElementById('face-video');
-        var canvas = document.getElementById('face-canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        canvas.toBlob(function (blob) {
-            capturedBlob = blob;
-            var url = URL.createObjectURL(blob);
-            var preview = document.getElementById('face-preview');
-            preview.src = url;
-            preview.style.display = 'block';
-            document.getElementById('face-video').style.display = 'none';
-            document.getElementById('face-reticle').style.display = 'none';
-            document.getElementById('btn-capture').style.display = 'none';
-            document.getElementById('btn-retake').style.display = '';
-            document.getElementById('face-ready-hint').style.display = 'block';
-            var submitBtn = document.getElementById('btn-face-submit');
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = '1';
-            stopCamera();
-        }, 'image/jpeg', 0.92);
-    };
-
-    window.retakePhoto = function () {
-        capturedBlob = null;
-        document.getElementById('face-preview').style.display = 'none';
-        document.getElementById('face-video').style.display = 'block';
-        document.getElementById('face-reticle').style.display = 'flex';
-        document.getElementById('btn-capture').style.display = '';
-        document.getElementById('btn-retake').style.display = 'none';
-        document.getElementById('face-ready-hint').style.display = 'none';
-        var submitBtn = document.getElementById('btn-face-submit');
-        submitBtn.disabled = true;
-        submitBtn.style.opacity = '.5';
-        startCamera();
-    };
+    // Выбор файла ладони
+    document.getElementById('face-file').addEventListener('change', function () {
+        var file = this.files[0];
+        if (!file) return;
+        capturedBlob = file;
+        var url = URL.createObjectURL(file);
+        document.getElementById('face-preview').src = url;
+        document.getElementById('face-preview').style.display = 'block';
+        document.getElementById('face-idle').style.display = 'none';
+        document.getElementById('face-file-btn').textContent = 'Изменить файл';
+        var btn = document.getElementById('btn-face-submit');
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    });
 
     window.submitFace = function () {
         var username = document.getElementById('face-username').value.trim();
-        if (!username) { showError('Укажите логин.'); return; }
-        if (!capturedBlob && currentCamera === 'laptop') { showError('Сначала сделайте фото.'); return; }
+        if (!username)     { showError('Укажите логин.'); return; }
+        if (!capturedBlob) { showError('Выберите фото ладони.'); return; }
 
         clearMessages();
         var btn = document.getElementById('btn-face-submit');
@@ -268,13 +139,8 @@
         var fd = new FormData();
         fd.append('username', username);
         fd.append('zone', 'main');
-        fd.append('camera_source', currentCamera);
-        if (capturedBlob) {
-            fd.append('image', capturedBlob, 'face.jpg');
-        } else {
-            // внешняя камера — заглушка: шлём пустой blob
-            fd.append('image', new Blob([], {type:'image/jpeg'}), 'face.jpg');
-        }
+        fd.append('camera_source', 'laptop');
+        fd.append('image', capturedBlob, 'palm.jpg');
 
         fetch('/api/auth/login/face/', {
             method: 'POST',
@@ -284,32 +150,30 @@
         .then(function (r) { return r.json().then(function (j) { return {status: r.status, body: j}; }); })
         .then(function (res) {
             if (res.body.decision === 'allowed') {
-                window.location.href = '/employees/';
+                window.location.href = '/';
             } else if (res.body.decision === 'warning') {
-                showWarning((res.body.message || 'Уверенность ИИ недостаточна, вход зафиксирован.') + ' Перенаправление…');
-                setTimeout(function () { window.location.href = '/employees/'; }, 2500);
+                showWarning((res.body.message || 'Уверенность недостаточна, вход зафиксирован.') + ' Перенаправление…');
+                setTimeout(function () { window.location.href = '/'; }, 2500);
             } else {
                 showError(res.body.message || res.body.error || 'Доступ запрещён');
                 btn.disabled = false;
-                btn.textContent = 'Войти по лицу';
+                btn.textContent = 'Войти по биометрии';
             }
         })
         .catch(function () {
             showError('Сервер недоступен');
             btn.disabled = false;
-            btn.textContent = 'Войти по лицу';
+            btn.textContent = 'Войти по биометрии';
         });
     };
 
     function showError(msg) {
         var el = document.getElementById('face-msg-error');
-        el.textContent = msg;
-        el.style.display = 'block';
+        el.textContent = msg; el.style.display = 'block';
     }
     function showWarning(msg) {
         var el = document.getElementById('face-msg-warning');
-        el.textContent = '⚠ ' + msg;
-        el.style.display = 'block';
+        el.textContent = '⚠ ' + msg; el.style.display = 'block';
     }
     function clearMessages() {
         document.getElementById('face-msg-error').style.display = 'none';

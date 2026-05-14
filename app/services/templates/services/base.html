@@ -84,6 +84,8 @@
                         {% if request.user.administrator or request.user.is_staff or request.user.is_superuser %}
                         <a class="topbar__nav-link" href="{% url 'history_list' %}">История</a>
                         <a class="topbar__nav-link" href="{% url 'access_level_list' %}">Уровни доступа</a>
+                        <a class="topbar__nav-link" href="http://localhost:9001" target="_blank" rel="noopener" title="MinIO Console">MinIO</a>
+                        <a class="topbar__nav-link" href="http://localhost:8081" target="_blank" rel="noopener" title="Redis Commander">Redis</a>
                         {% endif %}
                     </nav>
                     {% endif %}
@@ -112,6 +114,52 @@
         </footer>
     </div>
 
+<div id="toast-container"></div>
+
+<script>
+(function () {
+    function dismiss(el) {
+        el.style.transition = 'opacity .2s, transform .2s';
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-10px) scale(.97)';
+        setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 220);
+    }
+
+    function icon(type) {
+        if (type === 'success') return '<svg class="toast__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        if (type === 'warning') return '<svg class="toast__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+        return '<svg class="toast__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    }
+
+    window.showToast = function (message, type) {
+        type = type || 'error';
+        var container = document.getElementById('toast-container');
+        var toast = document.createElement('div');
+        toast.className = 'toast toast--' + type;
+        toast.innerHTML =
+            icon(type) +
+            '<span class="toast__text">' + message + '</span>' +
+            '<button class="toast__close" title="Закрыть">×</button>';
+        toast.querySelector('.toast__close').addEventListener('click', function () { dismiss(toast); });
+        container.appendChild(toast);
+        setTimeout(function () { dismiss(toast); }, 6000);
+    };
+
+    window.showError   = function (msg) { window.showToast(msg, 'error'); };
+    window.showSuccess = function (msg) { window.showToast(msg, 'success'); };
+    window.showWarning = function (msg) { window.showToast(msg, 'warning'); };
+
+    // Автоперехват server-side .form-error элементов (пропускаем скрытые JS-элементы)
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.form-error').forEach(function (el) {
+            if (el.style.display === 'none') return;
+            var msg = el.textContent.trim();
+            if (msg) window.showError(msg);
+        });
+    });
+}());
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://npmcdn.com/flatpickr/dist/l10n/ru.js"></script>
 <script>
@@ -130,6 +178,60 @@ document.addEventListener('DOMContentLoaded', function () {
             onChange: inFilterForm ? function() { inFilterForm.submit(); } : null,
         });
     });
+
+    // ── Маски ввода ИНН и СНИЛС ────────────────────────────────────
+    window.applyInnMask = function (v) {
+        var d = v.replace(/\D/g, '').slice(0, 12);
+        var p = [];
+        if (d.length > 0) p.push(d.slice(0, 4));
+        if (d.length > 4) p.push(d.slice(4, 8));
+        if (d.length > 8) p.push(d.slice(8, 12));
+        return p.join(' '); // неразрывный пробел чтобы не переносился
+    };
+    window.applySnilsMask = function (v) {
+        var d = v.replace(/\D/g, '').slice(0, 11);
+        var r = d.slice(0, 3);
+        if (d.length > 3) r += '-' + d.slice(3, 6);
+        if (d.length > 6) r += '-' + d.slice(6, 9);
+        if (d.length > 9) r += ' '  + d.slice(9, 11);
+        return r;
+    };
+
+    function initMaskInput(el, applyFn, maxRaw) {
+        if (!el) return;
+        // форматируем уже сохранённое значение
+        if (el.value) el.value = applyFn(el.value);
+        el.addEventListener('input', function () {
+            var start = this.selectionStart;
+            var before = this.value.length;
+            this.value = applyFn(this.value);
+            var diff = this.value.length - before;
+            var newPos = Math.max(0, start + diff);
+            try { this.setSelectionRange(newPos, newPos); } catch (_) {}
+        });
+        // разрешаем вводить только цифры (остальные клавиши — навигация, Ctrl, backspace и т.д.)
+        el.addEventListener('keydown', function (e) {
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            var nav = ['Backspace','Delete','Tab','Escape','Enter',
+                       'ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'];
+            if (nav.indexOf(e.key) !== -1) return;
+            if (!/^\d$/.test(e.key)) e.preventDefault();
+        });
+    }
+
+    var innEl   = document.getElementById('f-inn');
+    var snilsEl = document.getElementById('f-snils');
+    if (innEl) {
+        innEl.setAttribute('placeholder', '1234 5678 9012');
+        innEl.setAttribute('maxlength', '14');
+        initMaskInput(innEl, window.applyInnMask, 12);
+    }
+    if (snilsEl) {
+        snilsEl.setAttribute('placeholder', '123-456-789 00');
+        snilsEl.setAttribute('maxlength', '14');
+        initMaskInput(snilsEl, window.applySnilsMask, 11);
+    }
+    // ────────────────────────────────────────────────────────────────
 
     // Автосабмит фильтров
     document.querySelectorAll('.filter-bar__form').forEach(function(form) {

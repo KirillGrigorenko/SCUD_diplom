@@ -24,6 +24,10 @@ COUNTRIES = [
 ]
 
 
+def is_admin(user):
+    return hasattr(user, 'administrator') or user.is_staff or user.is_superuser
+
+
 def get_minio_url(key, ext='jpg'):
     if not key:
         return '/static/img/no-photo.svg'
@@ -46,6 +50,12 @@ def upload_photo(file, key):
 
     if not client.bucket_exists(bucket):
         client.make_bucket(bucket)
+
+    # Удаляем старый файл перед загрузкой нового
+    try:
+        client.remove_object(bucket, f'{key}.jpg')
+    except Exception:
+        pass
 
     img = Image.open(file)
     if img.mode != 'RGB':
@@ -177,7 +187,7 @@ def employee_detail(request, pk):
 
 @login_required(login_url='login')
 def employee_edit(request, pk):
-    if not hasattr(request.user, 'administrator'):
+    if not is_admin(request.user):
         return redirect('employee_detail', pk=pk)
 
     employee = get_object_or_404(Employee, pk=pk)
@@ -207,11 +217,14 @@ def employee_edit(request, pk):
             photo_file = request.FILES.get('photo')
             if photo_file:
                 try:
-                    key = f'employee_{employee.pk}'
+                    key = f'avatar_{employee.pk}'
                     upload_photo(photo_file, key)
                     employee.photo = key
                 except Exception as e:
                     error = f'Ошибка загрузки фото: {e}'
+            elif employee.photo == f'employee_{employee.pk}':
+                # чистим старый ключ, который мог быть записан биометрией
+                employee.photo = ''
 
             employee.save()
 
@@ -263,6 +276,7 @@ def employee_edit(request, pk):
             return redirect('employee_detail', pk=pk)
 
     bio = getattr(employee, 'biometricdata', None)
+    bio_registered = bool(bio and bio.palm_hash and bio.status)
     return render(request, 'services/employee_edit.html', {
         'employee': employee,
         'card': getattr(employee, 'employeecard', None),
@@ -274,14 +288,15 @@ def employee_edit(request, pk):
         'countries': COUNTRIES,
         'error': error,
         'today': timezone.now().date().isoformat(),
-        'bio_registered': bool(bio and bio.face_hash and bio.status),
-        'bio_registered_at': bio.face_registered_at if bio and bio.face_hash and bio.status else None,
+        'bio_registered': bio_registered,
+        'bio_registered_at': bio.palm_registered_at if bio_registered else None,
+        'bio_photo_url': get_minio_url(f'bio_{employee.pk}') if bio_registered else None,
     })
 
 
 @login_required(login_url='login')
 def employee_create(request):
-    if not hasattr(request.user, 'administrator'):
+    if not is_admin(request.user):
         return redirect('employee_list')
 
     positions = Position.objects.select_related('department').all()
@@ -320,7 +335,7 @@ def employee_create(request):
             photo_file = request.FILES.get('photo')
             if photo_file:
                 try:
-                    key = f'employee_{employee.pk}'
+                    key = f'avatar_{employee.pk}'
                     upload_photo(photo_file, key)
                     employee.photo = key
                     employee.save()
@@ -363,28 +378,6 @@ def employee_create(request):
                 except AccessLevel.DoesNotExist:
                     pass
 
-            face_b64 = request.POST.get('face_b64', '').strip()
-            if face_b64:
-                try:
-                    import base64 as _b64
-                    import io as _io
-                    from django.utils import timezone as _tz
-                    from .face_stub import get_face_hash
-                    from .models import BiometricData
-                    image_bytes = _b64.b64decode(face_b64)
-                    bio, _ = BiometricData.objects.get_or_create(employee=employee)
-                    bio.face_hash = get_face_hash(image_bytes)
-                    bio.face_registered_at = _tz.now().date()
-                    bio.status = True
-                    bio.save()
-                    if not employee.photo:
-                        key = f'employee_{employee.pk}'
-                        upload_photo(_io.BytesIO(image_bytes), key)
-                        employee.photo = key
-                        employee.save(update_fields=['photo'])
-                except Exception:
-                    pass
-
             if not error:
                 return redirect('employee_detail', pk=employee.pk)
 
@@ -401,7 +394,7 @@ def employee_create(request):
 
 @login_required(login_url='login')
 def position_create(request):
-    if not hasattr(request.user, 'administrator'):
+    if not is_admin(request.user):
         return JsonResponse({'error': 'Нет доступа'}, status=403)
 
     if request.method != 'POST':
@@ -429,7 +422,7 @@ def position_create(request):
 
 @login_required(login_url='login')
 def employee_delete(request, pk):
-    if not hasattr(request.user, 'administrator'):
+    if not is_admin(request.user):
         return redirect('employee_detail', pk=pk)
     if request.method != 'POST':
         return redirect('employee_detail', pk=pk)
@@ -442,7 +435,7 @@ def employee_delete(request, pk):
 
 @login_required(login_url='login')
 def department_create(request):
-    if not hasattr(request.user, 'administrator'):
+    if not is_admin(request.user):
         return JsonResponse({'error': 'Нет доступа'}, status=403)
 
     if request.method != 'POST':
@@ -458,7 +451,7 @@ def department_create(request):
 
 @login_required(login_url='login')
 def access_right_delete(request, pk):
-    if not hasattr(request.user, 'administrator'):
+    if not is_admin(request.user):
         return redirect('employee_list')
     if request.method != 'POST':
         return redirect('employee_list')
@@ -470,17 +463,18 @@ def access_right_delete(request, pk):
 
 @login_required(login_url='login')
 def access_level_list(request):
-    if not hasattr(request.user, 'administrator'):
+    if not is_admin(request.user):
         return redirect('employee_list')
 
     error = None
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         code = request.POST.get('code', '').strip()
-        zone = request.POST.get('zone', '').strip()
+        zones = request.POST.getlist('zone')
+        zone = ','.join(z for z in zones if z in ('main', 'restricted', 'server'))
         description = request.POST.get('description', '').strip()
         if not name or not code or not zone:
-            error = 'Название, код и зона обязательны.'
+            error = 'Название, код и хотя бы одна зона обязательны.'
         else:
             AccessLevel.objects.create(name=name, code=code, zone=zone, description=description)
             return redirect('access_level_list')
@@ -494,7 +488,7 @@ def access_level_list(request):
 
 @login_required(login_url='login')
 def access_level_delete(request, pk):
-    if not hasattr(request.user, 'administrator'):
+    if not is_admin(request.user):
         return redirect('access_level_list')
     if request.method != 'POST':
         return redirect('access_level_list')
@@ -504,7 +498,7 @@ def access_level_delete(request, pk):
 
 @login_required(login_url='login')
 def history_list(request):
-    if not hasattr(request.user, 'administrator'):
+    if not is_admin(request.user):
         return redirect('employee_detail', pk=request.user.employee.id)
 
     qs = AccessHistory.objects.select_related('employee').order_by('-datetime')
@@ -546,7 +540,7 @@ from django.http import HttpResponse
 
 @login_required(login_url='login')
 def employee_history_export_csv(request, pk):
-    if not hasattr(request.user, 'administrator'):
+    if not is_admin(request.user):
         return redirect('employee_list')
     employee = get_object_or_404(Employee, pk=pk)
     qs = AccessHistory.objects.filter(employee=employee).order_by('-datetime')
@@ -572,7 +566,7 @@ def employee_history_export_csv(request, pk):
 
 @login_required(login_url='login')
 def history_export_csv(request):
-    if not hasattr(request.user, 'administrator'):
+    if not is_admin(request.user):
         return redirect('employee_list')
 
     qs = AccessHistory.objects.select_related('employee').order_by('-datetime')

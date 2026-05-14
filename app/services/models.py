@@ -115,8 +115,8 @@ class EmployeeCard(models.Model):
 
 class BiometricData(models.Model):
     employee = models.OneToOneField(Employee, on_delete=models.CASCADE, verbose_name='Сотрудник')
-    face_hash = models.CharField(max_length=500, blank=True, verbose_name='Hash лица')
-    palm_hash = models.CharField(max_length=500, blank=True, verbose_name='Hash ладони')
+    face_hash = models.TextField(blank=True, verbose_name='Hash лица')
+    palm_hash = models.TextField(blank=True, verbose_name='Hash ладони')
     face_registered_at = models.DateField(null=True, blank=True, verbose_name='Дата регистрации hash лица')
     palm_registered_at = models.DateField(null=True, blank=True, verbose_name='Дата регистрации hash ладони')
     status = models.BooleanField(default=False, verbose_name='Статус биометрии')

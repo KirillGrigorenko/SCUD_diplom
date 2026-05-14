@@ -1,4 +1,5 @@
 {% extends 'services/base.html' %}
+{% load custom_filters %}
 {% block title %}Редактирование — {{ employee.full_name }}{% endblock %}
 
 {% block content %}
@@ -143,7 +144,7 @@
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">СНИЛС</span>
-                        <input class="input" type="text" name="snils" value="{{ card.snils|default:'' }}">
+                        <input class="input" id="f-snils" type="text" name="snils" value="{{ card.snils|default:'' }}">
                     </label>
                     <label class="input-label">
                         <span class="input-label__text">ИНН</span>
@@ -189,7 +190,7 @@
                     <div class="access-right-row">
                         <div class="access-right-info">
                             <span class="access-right-level">{{ ar.access_level.name }}</span>
-                            <span class="access-right-zone">{{ ar.access_level.zone }}</span>
+                            {% for z in ar.access_level.zone|split:',' %}<span class="access-right-zone">{{ z }}</span>{% endfor %}
                             {% if ar.expires_at %}
                             <span class="access-right-expires">до {{ ar.expires_at }}</span>
                             {% endif %}
@@ -237,7 +238,7 @@
 
             <!-- БИОМЕТРИЯ -->
             <div class="edit-section" id="bio-section">
-                <h2 class="edit-section__title">Биометрия (лицо)</h2>
+                <h2 class="edit-section__title">Биометрия ладони</h2>
 
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
                     {% if bio_registered %}
@@ -256,15 +257,29 @@
                     {% endif %}
                 </div>
 
-                <div id="bio-msg-ok"  style="display:none;margin-bottom:10px;padding:8px 14px;border-radius:8px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);color:#34d399;font-size:13px;"></div>
-                <div id="bio-msg-err" style="display:none;margin-bottom:10px;padding:8px 14px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;font-size:13px;"></div>
+                {% if bio_registered and bio_photo_url %}
+                <div style="margin-bottom:16px;display:flex;align-items:flex-end;gap:12px;">
+                    <div>
+                        <img id="bio-photo-preview" src="{{ bio_photo_url }}" alt="Биофото"
+                             style="width:72px;height:72px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,0.08);">
+                        <p style="font-size:11px;color:#64748b;margin-top:4px;text-align:center;">Биофото</p>
+                    </div>
+                </div>
+                {% else %}
+                <div id="bio-photo-wrap" style="display:none;margin-bottom:16px;">
+                    <img id="bio-photo-preview" src="" alt="Биофото"
+                         style="width:72px;height:72px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,0.08);">
+                    <p style="font-size:11px;color:#64748b;margin-top:4px;text-align:center;">Биофото</p>
+                </div>
+                {% endif %}
+
 
                 {% include 'services/_bio_capture.html' with widget_id="bio-edit" %}
 
                 <button type="button" id="bio-register-btn" disabled
                     onclick="bioRegisterEdit()"
                     style="margin-top:10px;padding:9px 20px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:#0ea5e9;color:#fff;opacity:.5;transition:opacity .2s;">
-                    {% if bio_registered %}Перерегистрировать лицо{% else %}Зарегистрировать лицо{% endif %}
+                    {% if bio_registered %}Перерегистрировать ладонь{% else %}Зарегистрировать ладонь{% endif %}
                 </button>
             </div>
 
@@ -289,6 +304,11 @@ function bioOnCapture(blob) {
     btn.style.opacity = '1';
 }
 
+function _getCsrf() {
+    var m = document.cookie.match(/(?:^|;)\s*csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+}
+
 function bioRegisterEdit() {
     if (!_bioBlob) return;
     var btn = document.getElementById('bio-register-btn');
@@ -300,37 +320,40 @@ function bioRegisterEdit() {
     fetch('/api/biometric/register/', {
         method: 'POST',
         credentials: 'same-origin',
+        headers: {'X-CSRFToken': _getCsrf()},
         body: fd,
     })
     .then(function(r){ return r.json().then(function(j){ return {ok: r.ok, body: j}; }); })
     .then(function(res){
         if (res.ok) {
-            var ok = document.getElementById('bio-msg-ok');
-            ok.textContent = 'Биометрия зарегистрирована, фото обновлено.';
-            ok.style.display = 'block';
-            document.getElementById('bio-msg-err').style.display = 'none';
-            btn.textContent = 'Перерегистрировать лицо';
+            if (res.body.photo_error) {
+                showSuccess('Биометрия зарегистрирована. Биофото не сохранено: ' + res.body.photo_error);
+            } else {
+                showSuccess('Биометрия зарегистрирована.');
+            }
+            btn.textContent = 'Перерегистрировать ладонь';
             btn.disabled = true;
             btn.style.opacity = '.5';
             if (res.body.photo_url) {
-                var preview = document.getElementById('photo-preview');
-                if (preview) preview.src = res.body.photo_url + '?t=' + Date.now();
+                var bioPreview = document.getElementById('bio-photo-preview');
+                var bioWrap = document.getElementById('bio-photo-wrap');
+                if (bioPreview) {
+                    bioPreview.src = res.body.photo_url + '?t=' + Date.now();
+                    if (bioWrap) bioWrap.style.display = 'block';
+                }
             }
             _bioBlob = null;
         } else {
-            var err = document.getElementById('bio-msg-err');
-            err.textContent = res.body.error || 'Ошибка регистрации';
-            err.style.display = 'block';
+            showError(res.body.error || res.body.detail || 'Ошибка регистрации');
             btn.disabled = false;
             btn.style.opacity = '1';
-            btn.textContent = '{% if bio_registered %}Перерегистрировать лицо{% else %}Зарегистрировать лицо{% endif %}';
+            btn.textContent = '{% if bio_registered %}Перерегистрировать ладонь{% else %}Зарегистрировать ладонь{% endif %}';
         }
     })
     .catch(function(){
-        document.getElementById('bio-msg-err').textContent = 'Сервер недоступен';
-        document.getElementById('bio-msg-err').style.display = 'block';
+        showError('Сервер недоступен');
         btn.disabled = false; btn.style.opacity = '1';
-        btn.textContent = '{% if bio_registered %}Перерегистрировать лицо{% else %}Зарегистрировать лицо{% endif %}';
+        btn.textContent = '{% if bio_registered %}Перерегистрировать ладонь{% else %}Зарегистрировать ладонь{% endif %}';
     });
 }
 
@@ -350,7 +373,7 @@ document.getElementById('photo-input').addEventListener('change', function () {
     var form = innInput ? innInput.closest('form') : null;
 
     function validateInn() {
-        var val = innInput.value.trim();
+        var val = innInput.value.replace(/\s/g, '');
         if (val === '') { innError.style.display = 'none'; return true; }
         if (/^\d{12}$/.test(val)) { innError.style.display = 'none'; return true; }
         innError.style.display = 'block';
@@ -358,7 +381,6 @@ document.getElementById('photo-input').addEventListener('change', function () {
     }
 
     if (innInput) {
-        innInput.addEventListener('input', validateInn);
         innInput.addEventListener('blur', validateInn);
     }
 
@@ -367,7 +389,9 @@ document.getElementById('photo-input').addEventListener('change', function () {
             if (!validateInn()) {
                 e.preventDefault();
                 innInput.focus();
+                return;
             }
+            innInput.value = innInput.value.replace(/\s/g, '');
         });
     }
 }());

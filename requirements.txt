@@ -9,3 +9,10 @@ redis==5.0.1
 djangorestframework==3.15.0
 drf-yasg==1.21.7
 django-cors-headers==4.3.1
+
+# Palm vein recognition microservice client
+requests
+
+# Testing
+pytest==8.2.0
+pytest-django==4.8.0

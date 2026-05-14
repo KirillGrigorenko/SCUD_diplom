@@ -1,6 +1,11 @@
 version: '3.9'
 
 services:
+  vein-service:
+    build: ./vein_service
+    ports:
+      - "8001:8001"
+
   web:
     build: .
     command: >
@@ -13,10 +18,13 @@ services:
       - .:/app
     env_file:
       - .env
+    environment:
+      - VEIN_SERVICE_URL=http://vein-service:8001
     depends_on:
       - db
       - minio
       - redis
+      - vein-service
 
   db:
     image: postgres:15
@@ -56,6 +64,15 @@ services:
     ports:
       - "6379:6379"
     command: ["redis-server", "--save", "", "--appendonly", "no"]
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
 
 
 volumes:

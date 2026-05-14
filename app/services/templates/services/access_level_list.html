@@ -1,4 +1,5 @@
 {% extends 'services/base.html' %}
+{% load custom_filters %}
 {% block title %}Уровни доступа{% endblock %}
 
 {% block content %}
@@ -30,8 +31,26 @@
             {% for level in levels %}
             <tr>
                 <td style="font-weight:600;color:#e2e8f0;">{{ level.name }}</td>
-                <td><code class="code-tag">{{ level.code }}</code></td>
-                <td><span class="access-right-zone">{{ level.zone }}</span></td>
+                <td>
+                    <code class="code-tag">
+                        {% if level.code == 'high' %}Высокий
+                        {% elif level.code == 'medium' %}Средний
+                        {% elif level.code == 'low' %}Низкий
+                        {% else %}{{ level.code }}{% endif %}
+                    </code>
+                </td>
+                <td>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                        {% for z in level.zone|split:',' %}
+                        <span class="access-right-zone">
+                            {% if z == 'main' %}Основная
+                            {% elif z == 'restricted' %}Ограниченная
+                            {% elif z == 'server' %}Серверная
+                            {% else %}{{ z }}{% endif %}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </td>
                 <td style="color:#64748b;font-size:13px;">{{ level.description|default:"—" }}</td>
                 <td style="text-align:right;width:48px;">
                     <form method="post" action="{% url 'access_level_delete' level.pk %}" style="display:inline;" onsubmit="return confirm('Удалить «{{ level.name }}»?')">
@@ -59,22 +78,35 @@
         {% csrf_token %}
         <div class="edit-fields">
             <label class="input-label">
-                <span class="input-label__text">Название <span style="color:#ef4444">*</span></span>
-                <input class="input" type="text" name="name" placeholder="Высокий">
-            </label>
-            <label class="input-label">
                 <span class="input-label__text">Код <span style="color:#ef4444">*</span></span>
-                <select class="input" name="code">
+                <select class="input" name="code" id="al-code">
                     <option value="">— Выберите —</option>
-                    <option value="high">high — высокий (server / restricted)</option>
-                    <option value="medium">medium — средний (main + restricted)</option>
-                    <option value="low">low — низкий (только main)</option>
+                    <option value="high">Высокий</option>
+                    <option value="medium">Средний</option>
+                    <option value="low">Низкий</option>
                 </select>
                 <span style="font-size:11px;color:#475569;margin-top:4px;display:block;">Используется МИВАР при биометрическом входе</span>
             </label>
             <label class="input-label">
-                <span class="input-label__text">Зона <span style="color:#ef4444">*</span></span>
-                <input class="input" type="text" name="zone" placeholder="server / main / restricted">
+                <span class="input-label__text">Название <span style="color:#ef4444">*</span></span>
+                <input class="input" type="text" name="name" id="al-name" placeholder="Заполняется автоматически">
+            </label>
+            <label class="input-label">
+                <span class="input-label__text">Зоны доступа <span style="color:#ef4444">*</span></span>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:2px;">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;">
+                        <input type="checkbox" name="zone" value="main" style="width:16px;height:16px;accent-color:#0ea5e9;cursor:pointer;">
+                        Основная <span style="font-size:12px;color:#475569;">(main)</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;">
+                        <input type="checkbox" name="zone" value="restricted" style="width:16px;height:16px;accent-color:#0ea5e9;cursor:pointer;">
+                        Ограниченная <span style="font-size:12px;color:#475569;">(restricted)</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;">
+                        <input type="checkbox" name="zone" value="server" style="width:16px;height:16px;accent-color:#0ea5e9;cursor:pointer;">
+                        Серверная <span style="font-size:12px;color:#475569;">(server)</span>
+                    </label>
+                </div>
             </label>
             <label class="input-label">
                 <span class="input-label__text">Описание</span>
@@ -86,5 +118,6 @@
         </div>
     </form>
 </div>
+
 
 {% endblock %}
