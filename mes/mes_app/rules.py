@@ -12,12 +12,16 @@
 #
 # Выходной параметр:
 #   Y1 — decision:        'allowed' | 'warning' | 'denied'
+#
+# Пороги берутся из thresholds.py и могут меняться через /settings/
 # ============================================================
+
+from .thresholds import get as T
 
 RULES = [
 
     # =========================================================
-    # ГРУППА 1 — Штатный доступ (рабочее время, X1>=80)
+    # ГРУППА 1 — Штатный доступ (рабочее время, X1>=group1_min)
     # 9 правил: 3 уровня × 3 зоны в рабочее время
     # =========================================================
     {
@@ -26,7 +30,7 @@ RULES = [
         "name": "Штатный: High в Main",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "high" and
             d["zone"] == "main" and
@@ -43,7 +47,7 @@ RULES = [
         "name": "Штатный: High в Restricted",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "high" and
             d["zone"] == "restricted" and
@@ -60,7 +64,7 @@ RULES = [
         "name": "Штатный: High в Server",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "high" and
             d["zone"] == "server" and
@@ -77,7 +81,7 @@ RULES = [
         "name": "Штатный: Medium в Main",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "medium" and
             d["zone"] == "main" and
@@ -94,7 +98,7 @@ RULES = [
         "name": "Штатный: Medium в Restricted",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "medium" and
             d["zone"] == "restricted" and
@@ -111,7 +115,7 @@ RULES = [
         "name": "Отказ: Medium в Server",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "medium" and
             d["zone"] == "server" and
@@ -128,7 +132,7 @@ RULES = [
         "name": "Штатный: Low в Main",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "low" and
             d["zone"] == "main" and
@@ -145,7 +149,7 @@ RULES = [
         "name": "Отказ: Low в Restricted",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "low" and
             d["zone"] == "restricted" and
@@ -162,7 +166,7 @@ RULES = [
         "name": "Отказ: Low в Server",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "low" and
             d["zone"] == "server" and
@@ -175,7 +179,7 @@ RULES = [
     },
 
     # =========================================================
-    # ГРУППА 2 — Доступ в нерабочее время (X1>=80, X5=false)
+    # ГРУППА 2 — Доступ в нерабочее время (X1>=group1_min, X5=false)
     # 9 правил: жёсткие ограничения вне рабочего времени
     # =========================================================
     {
@@ -184,7 +188,7 @@ RULES = [
         "name": "Внеурочно: High в Main",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "high" and
             d["zone"] == "main" and
@@ -201,7 +205,7 @@ RULES = [
         "name": "Внеурочно: High в Restricted",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "high" and
             d["zone"] == "restricted" and
@@ -218,7 +222,7 @@ RULES = [
         "name": "Внеурочно: High в Server",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "high" and
             d["zone"] == "server" and
@@ -235,7 +239,7 @@ RULES = [
         "name": "Внеурочно: Medium в Main",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "medium" and
             d["zone"] == "main" and
@@ -252,7 +256,7 @@ RULES = [
         "name": "Внеурочно: Medium в Restricted",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "medium" and
             d["zone"] == "restricted" and
@@ -269,7 +273,7 @@ RULES = [
         "name": "Внеурочно: Medium в Server",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "medium" and
             d["zone"] == "server" and
@@ -286,7 +290,7 @@ RULES = [
         "name": "Внеурочно: Low в Main",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "low" and
             d["zone"] == "main" and
@@ -303,7 +307,7 @@ RULES = [
         "name": "Внеурочно: Low в Restricted",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "low" and
             d["zone"] == "restricted" and
@@ -320,7 +324,7 @@ RULES = [
         "name": "Внеурочно: Low в Server",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            d["confidence"] >= 80 and
+            d["confidence"] >= T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "low" and
             d["zone"] == "server" and
@@ -333,7 +337,7 @@ RULES = [
     },
 
     # =========================================================
-    # ГРУППА 3 — Обработка сомнений ИИ (50% <= X1 < 80%)
+    # ГРУППА 3 — Обработка сомнений ИИ (group3_low <= X1 < group1_min)
     # 7 правил: пониженная уверенность нейросети
     # =========================================================
     {
@@ -342,7 +346,7 @@ RULES = [
         "name": "Сомнение ИИ: High → Server",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            50 <= d["confidence"] < 80 and
+            T()["group3_low"] <= d["confidence"] < T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "high" and
             d["zone"] == "server" and
@@ -359,7 +363,7 @@ RULES = [
         "name": "Сомнение ИИ: High → Restricted",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            50 <= d["confidence"] < 80 and
+            T()["group3_low"] <= d["confidence"] < T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "high" and
             d["zone"] == "restricted" and
@@ -376,7 +380,7 @@ RULES = [
         "name": "Сомнение ИИ: High → Main",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            50 <= d["confidence"] < 80 and
+            T()["group3_low"] <= d["confidence"] < T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "high" and
             d["zone"] == "main" and
@@ -393,7 +397,7 @@ RULES = [
         "name": "Сомнение ИИ: Medium → Restricted",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            50 <= d["confidence"] < 80 and
+            T()["group3_low"] <= d["confidence"] < T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "medium" and
             d["zone"] == "restricted" and
@@ -410,7 +414,7 @@ RULES = [
         "name": "Сомнение ИИ: Medium → Main",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            50 <= d["confidence"] < 80 and
+            T()["group3_low"] <= d["confidence"] < T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "medium" and
             d["zone"] == "main" and
@@ -427,7 +431,7 @@ RULES = [
         "name": "Сомнение ИИ: Low → Main",
         "inputs": ["X1", "X2", "X3", "X4", "X5", "X6"],
         "condition": lambda d: (
-            50 <= d["confidence"] < 80 and
+            T()["group3_low"] <= d["confidence"] < T()["group1_min"] and
             d["status"] == "active" and
             d["access_level"] == "low" and
             d["zone"] == "main" and
@@ -444,7 +448,7 @@ RULES = [
         "name": "Низкая уверенность ИИ",
         "inputs": ["X1"],
         "condition": lambda d: (
-            d["confidence"] < 50
+            d["confidence"] < T()["group3_low"]
         ),
         "result": "denied",
         "message": "Доступ запрещён — личность не установлена",
@@ -526,10 +530,10 @@ RULES = [
     {
         "id": 31,
         "group": 5,
-        "name": "Блокировка: 3 и более ошибок",
+        "name": "Блокировка: превышение числа попыток",
         "inputs": ["X6"],
         "condition": lambda d: (
-            d["failed_attempts"] >= 3
+            d["failed_attempts"] >= T()["lockout_count"]
         ),
         "result": "denied",
         "message": "Доступ заблокирован — превышено число попыток",

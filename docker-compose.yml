@@ -74,6 +74,14 @@ services:
     depends_on:
       - redis
 
+  mes:
+    build: ./mes
+    command: python manage.py runserver 0.0.0.0:8002
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./mes:/app
+
 
 volumes:
   postgres_data:

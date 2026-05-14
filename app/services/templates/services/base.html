@@ -69,15 +69,10 @@
         <header class="topbar">
             <div class="topbar__left">
                 <a class="topbar__brand" href="{% url 'employee_list' %}">
-                    <svg class="topbar__logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M12 2L3 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" fill="currentColor"/>
-                        <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
                     <span class="topbar__name">СКУД</span>
                 </a>
 
                 <div class="topbar__meta">
-                    <span class="topbar__tag">Система контроля доступа</span>
                     {% if request.user.is_authenticated %}
                     <nav class="topbar__nav">
                         <a class="topbar__nav-link" href="{% url 'employee_list' %}">Сотрудники</a>
@@ -86,6 +81,7 @@
                         <a class="topbar__nav-link" href="{% url 'access_level_list' %}">Уровни доступа</a>
                         <a class="topbar__nav-link" href="http://localhost:9001" target="_blank" rel="noopener" title="MinIO Console">MinIO</a>
                         <a class="topbar__nav-link" href="http://localhost:8081" target="_blank" rel="noopener" title="Redis Commander">Redis</a>
+                        <a class="topbar__nav-link" href="http://localhost:8002" target="_blank" rel="noopener" title="МЭС — движок правил">МЭС</a>
                         {% endif %}
                     </nav>
                     {% endif %}
@@ -94,7 +90,6 @@
 
             <div class="topbar__right">
                 {% if request.user.is_authenticated %}
-                    <span class="topbar__user">Привет, {{ request.user.get_full_name|default:request.user.username }}</span>
                     <a class="topbar__action" href="{% url 'logout' %}">Выйти</a>
                 {% else %}
                     <a class="topbar__action" href="{% url 'login' %}">Войти</a>

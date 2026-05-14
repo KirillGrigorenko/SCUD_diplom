@@ -296,7 +296,7 @@ class EmployeeCreateAPIView(APIView):
         photo_file = request.FILES.get('photo')
         if photo_file:
             from .views import upload_photo
-            key = f'avatar_{employee.pk}'
+            key = f'avatars/{employee.pk}'
             upload_photo(photo_file, key)
             employee.photo = key
             employee.save()
@@ -377,7 +377,7 @@ class EmployeeUpdateAPIView(APIView):
         photo_file = request.FILES.get('photo')
         if photo_file:
             from .views import upload_photo
-            key = f'avatar_{employee.pk}'
+            key = f'avatars/{employee.pk}'
             upload_photo(photo_file, key)
             employee.photo = key
 
@@ -803,7 +803,7 @@ class BiometricRegisterAPIView(APIView):
         photo_error = None
         try:
             from .views import upload_photo, get_minio_url
-            bio_key = f'bio_{employee.pk}'
+            bio_key = f'biometrics/{employee.pk}'
             upload_photo(_io.BytesIO(image_bytes), bio_key)
             photo_url = get_minio_url(bio_key)
         except Exception as e:

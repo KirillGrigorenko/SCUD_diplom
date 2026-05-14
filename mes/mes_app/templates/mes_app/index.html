@@ -334,7 +334,10 @@
     <div class="header-logo">
         <span class="status-dot"></span>МЭС СКУД v2.0
     </div>
-    <div class="header-meta">МИВАРНАЯ ЭКСПЕРТНАЯ СИСТЕМА / 32 ПРАВИЛА / 5 ГРУПП</div>
+    <div style="display:flex;align-items:center;gap:1.5rem;">
+        <div class="header-meta">МИВАРНАЯ ЭКСПЕРТНАЯ СИСТЕМА / 32 ПРАВИЛА / 5 ГРУПП</div>
+        <a href="{% url 'settings' %}" style="font-family:var(--mono);font-size:0.68rem;color:var(--text-dim);text-decoration:none;letter-spacing:0.08em;border:1px solid var(--border2);padding:3px 10px;transition:color .15s,border-color .15s;" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'" onmouseout="this.style.color='var(--text-dim)';this.style.borderColor='var(--border2)'">Настройки порогов</a>
+    </div>
 </header>
 
 <main>
@@ -357,8 +360,8 @@
                     </div>
                     <div class="range-labels">
                         <span>0</span>
-                        <span class="warn">50 — warning</span>
-                        <span class="ok">80 — allowed</span>
+                        <span class="warn">{{ thresholds.group3_low }} — warning</span>
+                        <span class="ok">{{ thresholds.group1_min }} — allowed</span>
                         <span>100</span>
                     </div>
                 </div>

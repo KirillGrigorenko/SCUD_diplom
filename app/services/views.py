@@ -217,7 +217,7 @@ def employee_edit(request, pk):
             photo_file = request.FILES.get('photo')
             if photo_file:
                 try:
-                    key = f'avatar_{employee.pk}'
+                    key = f'avatars/{employee.pk}'
                     upload_photo(photo_file, key)
                     employee.photo = key
                 except Exception as e:
@@ -290,7 +290,7 @@ def employee_edit(request, pk):
         'today': timezone.now().date().isoformat(),
         'bio_registered': bio_registered,
         'bio_registered_at': bio.palm_registered_at if bio_registered else None,
-        'bio_photo_url': get_minio_url(f'bio_{employee.pk}') if bio_registered else None,
+        'bio_photo_url': get_minio_url(f'biometrics/{employee.pk}') if bio_registered else None,
     })
 
 
@@ -335,7 +335,7 @@ def employee_create(request):
             photo_file = request.FILES.get('photo')
             if photo_file:
                 try:
-                    key = f'avatar_{employee.pk}'
+                    key = f'avatars/{employee.pk}'
                     upload_photo(photo_file, key)
                     employee.photo = key
                     employee.save()
